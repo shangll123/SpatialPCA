@@ -34,7 +34,7 @@ library(bluster)
 library(ggpubr)
 library(slingshot)
 
-load("ST_tumor_example.RData")
+load(system.file("extdata", "ST_tumor_example.RData", package = "SpatialPCA"))
 ls()
 dim(expr)
 dim(info)
