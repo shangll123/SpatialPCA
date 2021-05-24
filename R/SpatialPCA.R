@@ -311,13 +311,16 @@ SpatialPCA_estimate_paras_largedata = function(param_ini,dat_input,PCnum=20){
     n = dim(dat_input$Y)[2]
     sum_det=0
     q=dat_input$q
-
-    Sigma_middle_inv = dat_input$U[,c(1:PCnum)] %*% diag(1/(tau*dat_input$delta+1))[c(1:PCnum),c(1:PCnum)] %*% t(dat_input$U[,c(1:PCnum)])
-    sum_det_each = 0.5*log(prod(tau*dat_input$delta+1)) +0.5*log(sum(Sigma_middle_inv))
-    
-    G_each = as.matrix(tau * dat_input$YM%*% Sigma_middle_inv %*% dat_input$KYM )
-
-    sum_det=0
+    if(q==1){
+    	Sigma_middle_inv = dat_input$U[,c(1:PCnum)] %*% diag(1/(tau*dat_input$delta+1))[c(1:PCnum),c(1:PCnum)] %*% t(dat_input$U[,c(1:PCnum)])
+    	sum_det_each = 0.5*log(prod(tau*dat_input$delta+1)) +0.5*log(sum(Sigma_middle_inv))
+    	G_each = as.matrix(tau * dat_input$YM%*% Sigma_middle_inv %*% dat_input$KYM )
+	}else if(q>1){
+		Sigma_middle_inv = dat_input$U[,c(1:PCnum)] %*% diag(1/(tau*dat_input$delta+1))[c(1:PCnum),c(1:PCnum)] %*% t(dat_input$U[,c(1:PCnum)])
+    	Xt_Sigma_middle_inv_X = t(dat_input$H)%*% Sigma_middle_inv %*% dat_input$H
+    	sum_det_each = 0.5*log(prod(tau*dat_input$delta+1)) +0.5*log(sum(Xt_Sigma_middle_inv_X))
+    	G_each = as.matrix(tau * dat_input$YM%*% Sigma_middle_inv %*% dat_input$KYM )
+	}
     for(i_d in 1:PCnum){
       sum_det = sum_det+sum_det_each
     }
@@ -383,11 +386,17 @@ SpatialPCA_estimate_W_largedata = function(parameter,dat_input,PCnum=20){
     k = dim(dat_input$Y)[1]
     n = dim(dat_input$Y)[2]
     q=dat_input$q
-     
-    Sigma_middle_inv = dat_input$U[,c(1:PCnum)] %*% diag(1/(tau*dat_input$delta+1))[c(1:PCnum),c(1:PCnum)] %*% t(dat_input$U[,c(1:PCnum)])
-    sum_det_each = 0.5*log(prod(tau*dat_input$delta+1)) +0.5*log(sum(Sigma_middle_inv))
-    G_each = as.matrix(tau * dat_input$YM%*% Sigma_middle_inv %*% dat_input$KYM )
-
+    
+    if(q==1){
+    	Sigma_middle_inv = dat_input$U[,c(1:PCnum)] %*% diag(1/(tau*dat_input$delta+1))[c(1:PCnum),c(1:PCnum)] %*% t(dat_input$U[,c(1:PCnum)])
+    	sum_det_each = 0.5*log(prod(tau*dat_input$delta+1)) +0.5*log(sum(Sigma_middle_inv))
+    	G_each = as.matrix(tau * dat_input$YM%*% Sigma_middle_inv %*% dat_input$KYM )
+	}else if(q>1){
+		Sigma_middle_inv = dat_input$U[,c(1:PCnum)] %*% diag(1/(tau*dat_input$delta+1))[c(1:PCnum),c(1:PCnum)] %*% t(dat_input$U[,c(1:PCnum)])
+    	Xt_Sigma_middle_inv_X = t(dat_input$H)%*% Sigma_middle_inv %*% dat_input$H
+    	sum_det_each = 0.5*log(prod(tau*dat_input$delta+1)) +0.5*log(sum(Xt_Sigma_middle_inv_X))
+    	G_each = as.matrix(tau * dat_input$YM%*% Sigma_middle_inv %*% dat_input$KYM )
+	}
     sum_det=0
     for(i_d in 1:PCnum){
       sum_det = sum_det+sum_det_each 
@@ -526,4 +535,3 @@ mat_inv = est_Z$mat_inv
 
 return(list("Z_star"=z_star, "Location_star" = newinfo))
 }
-
