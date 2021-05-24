@@ -305,7 +305,7 @@ SpatialPCA_estimate_paras_largedata = function(param_ini,dat_input,PCnum=20){
 
     set.seed(1234)
     param = param_ini
-    print(param)
+    #print(param)
     tau=exp(param[1])
     k = dim(dat_input$Y)[1]
     n = dim(dat_input$Y)[2]
