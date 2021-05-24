@@ -1,5 +1,9 @@
 ---
 title: "Spatially aware dimension reduction unlocks scRNA-seq tools for spatial transcriptomics analysis"
+author:
+- name: Lulu Shang, Xiang Zhou
+  affiliation: University of Michigan
+date: "`r format(Sys.time(), '%B %d %Y')`"
 output:
   html_document: default
   pdf_document: default
@@ -21,7 +25,7 @@ The inferred low dimensional components from SpatialPCA contain spatial correlat
 
 
 ### SpatialPCA installation.
-```{r}
+```{r warning=FALSE}
 library(devtools)
 install_github("shangll123/SpatialPCA")
 ```
