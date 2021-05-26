@@ -355,7 +355,7 @@ SpatialPCA_estimate_parameter_largedata = function(maxiter=300,log_tau_ini=0,dat
   set.seed(1234)
   param_ini=log_tau_ini
   start_time <- Sys.time()
-  m_trend=try(optim(param_ini, SpatialPCA_estimate_paras_largedata,dat_input=dat_input,PCnum=PCnum,control = list(maxit = maxiter), lower = -3, upper = 3,method="Brent"),silent=T)
+  m_trend=try(optim(param_ini, SpatialPCA_estimate_paras_largedata,dat_input=dat_input,PCnum=PCnum,control = list(maxit = maxiter), lower = -10, upper = 10,method="Brent"),silent=T)
   end_time <- Sys.time()
   T_m_trend = end_time - start_time
   T_m_trend
