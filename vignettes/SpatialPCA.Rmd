@@ -1,5 +1,5 @@
 ---
-title: "Spatially aware dimension reduction unlocks scRNA-seq tools for spatial transcriptomics analysis"
+title: "Spatially Aware Dimension Reduction for Spatial Transcriptomics"
 author:
 - name: Lulu Shang, Xiang Zhou
   affiliation: University of Michigan
@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## SpatialPCA.
 
-SpatialPCA is a spatially aware dimension reduction method that aims to infer a low dimensional representation of the gene expression data in spatial transcriptomics. SpatialPCA builds upon the probabilistic version of PCA, incorporates localization information as additional input, and uses a kernel matrix to explicitly model the spatial correlation structure across tissue locations. 
+SpatialPCA, or spatial probabilistic PCA, is a spatially aware dimension reduction method that aims to infer a low dimensional representation of the gene expression data in spatial transcriptomics. SpatialPCA builds upon the probabilistic version of PCA, incorporates localization information as additional input, and uses a kernel matrix to explicitly model the spatial correlation structure across tissue locations. 
 
 The inferred low dimensional components from SpatialPCA contain spatial correlation information and can be paired with various analytic tools already developed in scRNA-seq studies to enable effective and novel downstream analyses for spatial transcriptomics. The examined downstream analyses of spatial transcriptomics include spatial transcriptomics visualization, spatial domain detection, trajectory inference on the tissue, and high-resolution spatial map reconstruction.
 
@@ -30,78 +30,54 @@ library(devtools)
 install_github("shangll123/SpatialPCA")
 ```
 
-Load in processed data: gene expression and location. The only input data we need is a m by n gene expression matrix and a n by d location matrix in the spatial data. Here m is number of input genes, n is number of locations, d is the dimension of the locations (e.g. if the location is on a 2D tissue, then d=2).
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(SpatialPCA)
 library(ggplot2)
 library(bluster)
 library(ggpubr)
 library(slingshot)
+```
 
+Load in processed data: a normalized gene expression matrix (m gene by n locations) and a location matrix (n locations by d dimension).
+## SpatialPCA example 1: ST tumor data (n=607).
+```{r}
 expr=readRDS(system.file("extdata", "ST_tumor_expr.RData", package = "SpatialPCA"))
 info=readRDS(system.file("extdata", "ST_tumor_info.RData", package = "SpatialPCA"))
 ls()
 dim(expr)
 dim(info)
 ```
-
-### SpatialPCA.
-In the example data, we scaled expression values of each gene, and prepared data matrices needed in the folowing SpatialPCA functions. 
+In the example data, we first scale the expression values of each gene, and then prepare data matrices needed in the folowing SpatialPCA functions. 
 ```{r}
+# scale each gene in the normalized data
 expr=scale_expr(expr)
 dat = data_prepare_func(expr, info)
 ```
 
-Then we selected bandwidth for Gaussian kernel. Other kernel options include "cauchy" and "quadratic". For bandwidth selection, we used the median bandwidth value across all genes in each selected method. The bandwidth selection methods include "SJ", which is a non-parametric Sheather & Jones’s bandwidth that is especially robust for data with small sample size. 
+Then we select the bandwidth for gaussian kernel. In this example we use a bandwidth selection method called "SJ", which is a non-parametric Sheather & Jones’s bandwidth that is especially robust for data with small sample size. 
 ```{r}
 # obtain bandwidth in gaussian kernel
 bandwidth = bandwidth_select(expr, info,method="SJ")
 # build gaussian kernel
 K=kernel_build(kernelpara="gaussian", dat$ED2,bandwidth) 
-# select the number of PCs
-PC_num = 20
 ```
 
-We run SpatialPCA functions to extract 20 spatial PCs:
+We run SpatialPCA functions to extract spatial PCs:
 ```{r}
+# select the number of PCs
+PC_num = 20
 Est_para = SpatialPCA_estimate_parameter(dat_input=dat,PCnum=PC_num)
 Est_W = SpatialPCA_estimate_W(Est_para$par, dat,PCnum=PC_num)
 Est_Z = SpatialPCA_estimate_Z(Est_para$par,dat,Est_W,PCnum=PC_num)
 dat$Est_para = Est_para
 dat$Est_W = Est_W
 dat$Z_spatial = Est_Z$Z_hat
-# done!
 ```
 
-In data with large samples (n>5000), we recommend using Silverman’s “rule-of-thumb” bandwidth, by selecting "Silverman" in the below function.Also, when dealing with large sample size data, we want to pre-compute some matrices so that a lot of time could be saved during the iterations. Below section of codes are only needed when sample size is greater than 5000. 
-```{r message=FALSE, warning=FALSE}
-#---------------------------------------------------------------
-# this section of codes are only needed when sample size > 5000
-#---------------------------------------------------------------
-# library(RSpectra)
-# bandwidth = bandwidth_select(expr, info,method="SJ")
-# K=kernel_build(kernelpara="gaussian", dat$ED2,bandwidth) 
-# PC_num = 20
-# dat$YMt = t(dat$YM)
-# dat$KYM = K%*%dat$YMt
-# dat$K = K
-# eigen_res = eigs_sym(K, k=PC_num, which = "LM")
-# dat$delta = eigen_res$values
-# dat$U = eigen_res$vectors
-## run SpatialPCA functions to extract 20 spatial PCs
-# Est_para = SpatialPCA_estimate_parameter_largedata(dat_input=dat,PCnum=PC_num)
-# Est_W = SpatialPCA_estimate_W_largedata(Est_para$par, dat,PCnum=PC_num)
-# Est_Z = SpatialPCA_estimate_Z_largedata(Est_para$par,dat,Est_W,PCnum=PC_num)
-# dat$Est_para = Est_para
-# dat$Est_W = Est_W
-# dat$Z_spatial = Est_Z$Z_hat
-# done!
-```
-
-### 1. Spatial transcriptomics visualization.
+### 1.1. Spatial transcriptomics visualization.
 
 #### Visualizing the first 3 spatial PCs.
-We visualized tissue locations by the first three spatial PCs.
+We visualize the first three spatial PCs by their tissue locations.
 ```{r fig.height=4, fig.width=12}
 p_PCs = plot_factor_value(info,dat$Z_spatial,textmethod="SpatialPCA",pointsize=3.5,textsize=15)
 ggarrange(p_PCs[[1]], p_PCs[[2]], p_PCs[[3]],
@@ -109,14 +85,14 @@ ggarrange(p_PCs[[1]], p_PCs[[2]], p_PCs[[3]],
 ```
 
 #### Visualization by RGB plots. 
-We summarized the inferred spatial PCs into three UMAP or tSNE components and visualized the three resulting components with red/green/blue (RGB) colors in the RGB plot. 
+We summarize the inferred spatial PCs into three UMAP or tSNE components and visualize the three resulting components with red/green/blue (RGB) colors in the RGB plot. 
 ```{r fig.height=4, fig.width=12}
 p_tsne = plot_RGB_tSNE(info,dat$Z_spatial,pointsize=3.5,textsize=15)$figure
 p_umap = plot_RGB_UMAP(info,dat$Z_spatial,pointsize=3.5,textsize=15)$figure
 print(ggarrange(p_tsne, p_umap, ncol = 3, nrow = 1))
 ```
 
-### 2. Spatial domain detection.
+### 1.2. Spatial domain detection.
 Clustering of tissue locations are performed based on the inferred low-dimensional components from SpatialPCA. Tissue domains are detected by SpatialPCA clustering results.
 ```{r fig.height=4, fig.width=4}
 walktrap_cluster_SpatialPCA = walktrap_clustering(knearest = c(31), latent_dat=dat$Z_spatial)
@@ -185,8 +161,8 @@ print(ggarrange(p[[1]], p[[2]],p[[3]],
           ncol = 3, nrow = 1))
 ```
 
-### 3. Trajectory inference.
-Spatial PCs can also be paired with existing trajectory inference algorithms (we used slingshot) to infer the spatial trajectories across tissue locations. Slingshot inferred 3 trajectories from this data.
+### 1.3. Trajectory inference.
+Spatial PCs can also be paired with existing trajectory inference algorithms (we used slingshot) to infer the spatial trajectories across tissue locations. 
 ```{r}
 meta_data = info
 meta_data$SpatialPCA_Walktrap = walktrap_cluster_SpatialPCA$cluster_label[[1]]
@@ -212,7 +188,7 @@ print(ggarrange( p_traj1[[4]],p_traj2[[4]],p_traj3[[4]],p_traj1[[1]],p_traj2[[1]
           ncol = 3, nrow = 2))
 ```
 
-### 4. High-resolution spatial map reconstruction.
+### 1.4. High-resolution spatial map reconstruction.
 In SpatialPCA, the correlation among spatial PCs allows us to construct a refined spatial map with a resolution much higher than that of the original study.
 ```{r fig.height=5, fig.width=5}
 Z_high = high_resolution(info, K, kernelpara="gaussian",ED=dat$ED, est_log_tau = dat$Est_para$par,est_W = Est_W[[1]] ,est_sigma0 = Est_W[[2]][1,1],est_Z = Est_Z,PCnum=20)
@@ -225,13 +201,13 @@ p3 = plot_cluster(loc1,loc2,Z_high_clusters,pointsize=2,text_size=10 ,title_in="
 print(p3)
 ```
 
-### Trajectory inference on high-resolution spatial map.
-We performed trajectory inference on the high-resolution spatial map. 
+### 1.5. High-resolution spatial map reconstruction.
+We perform trajectory inference on the high-resolution spatial map. 
 ```{r}
-simhigh <- SingleCellExperiment(Z_high$Z_star)
-reducedDims(simhigh) <- SimpleList(DRM = t(Z_high$Z_star))
-colData(simhigh)$Walktrap <- factor(Z_high_clusters)    
-simhigh  <-slingshot(simhigh, clusterLabels = 'Walktrap', reducedDim = 'DRM')
+simhigh = SingleCellExperiment(Z_high$Z_star)
+reducedDims(simhigh) = SimpleList(DRM = t(Z_high$Z_star))
+colData(simhigh)$Walktrap = factor(Z_high_clusters)    
+simhigh = slingshot(simhigh, clusterLabels = 'Walktrap', reducedDim = 'DRM')
 summary(simhigh@colData@listData)
 ```
 
@@ -252,4 +228,122 @@ p_traj3 = plot_trajectory(Z_high_pseudotime_traj3, Z_high$Location_star,cluster,
 print(ggarrange( p_traj1[[4]],p_traj2[[4]],p_traj3[[4]],p_traj1[[1]],p_traj2[[1]],p_traj3[[1]],
           ncol = 3, nrow = 2))
 ```
+
+## SpatialPCA example 2: osmFISH cortex data (n=5,275).
+
+The second example data is the osmFISH data.
+```{r}
+library(SpatialPCA)
+library(ggplot2)
+library(bluster)
+library(ggpubr)
+library(slingshot)
+
+expr=readRDS(system.file("extdata", "osmFISH_expr.RData", package = "SpatialPCA"))
+info=readRDS(system.file("extdata", "osmFISH_info.RData", package = "SpatialPCA"))
+
+dim(expr)
+dim(info)
+```
+
+We run SpatialPCA functions to extract 20 spatial PCs on the osmFISH data. In data with large samples (n>5000), we recommend using Silverman’s “rule-of-thumb” bandwidth. Also, when dealing with large sample size data, we want to pre-compute some matrices to save time. 
+```{r}
+
+library(RSpectra)
+# scale each gene in the normalized data
+expr=scale_expr(expr)
+dat_large = data_prepare_func(expr, info)
+# select bandwidth using Silverman's method in large sample size data.
+bandwidth = bandwidth_select(expr, info,method="Silverman")
+# build gaussian kernel
+K=kernel_build(kernelpara="gaussian", dat_large$ED2,bandwidth) 
+# select 20 spatial PCs
+PC_num = 20
+# prepare matrices
+dat_large$YMt = t(dat_large$YM)
+dat_large$KYM = K%*%dat_large$YMt
+dat_large$K = K
+eigen_res = eigs_sym(K, k=PC_num, which = "LM")
+dat_large$delta = eigen_res$values
+dat_large$U = eigen_res$vectors
+# estimate parameters
+Est_para = SpatialPCA_estimate_parameter_largedata(dat_input=dat_large,PCnum=PC_num)
+# estimate W
+Est_W = SpatialPCA_estimate_W_largedata(Est_para$par, dat_large,PCnum=PC_num)
+# estimate Z
+Est_Z = SpatialPCA_estimate_Z_largedata(Est_para$par,dat_large,Est_W,PCnum=PC_num)
+dat_large$Est_para = Est_para
+dat_large$Est_W = Est_W
+dat_large$Z_spatial = Est_Z$Z_hat
+```
+
+### 2.1. Spatial transcriptomics visualization.
+
+#### Visualizing the first 3 spatial PCs by their tissue locations.
+```{r fig.height=4, fig.width=12}
+p_PCs = plot_factor_value(info,dat_large$Z_spatial,textmethod="SpatialPCA",pointsize=2,textsize=15)
+ggarrange(p_PCs[[1]], p_PCs[[2]], p_PCs[[3]],
+          ncol = 3, nrow = 1)
+```
+
+#### Visualization by RGB plots. 
+We summarize the inferred spatial PCs into three UMAP or tSNE components and visualize the three resulting components with red/green/blue (RGB) colors in the RGB plot. 
+```{r fig.height=4, fig.width=12}
+p_tsne = plot_RGB_tSNE(info,dat_large$Z_spatial,pointsize=2,textsize=15)$figure
+p_umap = plot_RGB_UMAP(info,dat_large$Z_spatial,pointsize=2,textsize=15)$figure
+print(ggarrange(p_tsne, p_umap, ncol = 3, nrow = 1))
+```
+
+### 2.2. Spatial domain detection.
+Clustering of tissue locations are performed based on the inferred low-dimensional components from SpatialPCA. Tissue domains are detected by SpatialPCA clustering results.
+```{r fig.height=4, fig.width=4, warning=FALSE}
+walktrap_cluster_SpatialPCA = walktrap_clustering(knearest = c(82), latent_dat=dat_large$Z_spatial)
+cbp_spatialpca = c( "chartreuse3", "coral2", "tan1",  "yellow",  "dodgerblue",
+  "#CC79A7",  "steelblue",   "cadetblue1","skyblue2","#52854C","#FFDB6D","slateblue")
+info = as.data.frame(info)
+clusterlabel = walktrap_cluster_SpatialPCA$cluster_label[[1]]
+colnames(info) = c("sdimx","sdimy")
+loc1 = info$sdimx
+loc2 = info$sdimy
+datt = data.frame(clusterlabel, loc1, loc2)
+p = ggplot(datt, aes(x = loc1, y = loc2, color = clusterlabel)) +
+    		geom_point( alpha = 1,size=2) +
+    		scale_color_manual(values = cbp_spatialpca)+
+    		theme_void()+
+    		theme(plot.title = element_text(size = 10,  face = "bold"),
+              text = element_text(size = 10),
+              legend.position = "bottom")
+print(p)
+```
+
+
+### 2.3. Trajectory inference.
+Spatial PCs can also be paired with existing trajectory inference algorithms (we used slingshot) to infer the spatial trajectories across tissue locations. Slingshot inferred 3 trajectories from this data.
+```{r}
+meta_data = info
+meta_data$SpatialPCA_Walktrap = walktrap_cluster_SpatialPCA$cluster_label[[1]]
+sim_large = SingleCellExperiment(assays = expr)
+reducedDims(sim_large) = SimpleList(DRM = t(dat_large$Z_spatial))
+colData(sim_large)$Walktrap = factor(meta_data$SpatialPCA_Walktrap)    
+sim_large = slingshot(sim_large, clusterLabels = 'Walktrap', reducedDim = 'DRM',start.clus="12")
+summary(sim_large@colData@listData)
+```
+
+We visualize the three trajectories inferred by SpatialPCA. Arrows point from tissue locations with low pseudo-time to tissue locations with high pseudo-time. 
+```{r fig.height=8, fig.width=12}
+pseudotime_traj1 = sim_large@colData@listData$slingPseudotime_1
+pseudotime_traj2 = sim_large@colData@listData$slingPseudotime_2
+pseudotime_traj3 = sim_large@colData@listData$slingPseudotime_3
+clusters = meta_data$SpatialPCA_Walktrap
+gridnum = 20
+color_in =  c( "chartreuse3", "coral2", "tan1",  "yellow",  "dodgerblue",
+  "#CC79A7",  "steelblue",   "cadetblue1","skyblue2","#52854C","#FFDB6D","slateblue","black")
+p_traj1 = plot_trajectory(pseudotime_traj1, info,clusters,gridnum,color_in,pointsize=2 ,arrowlength=0.2,arrowsize=0.8,textsize=15 )
+p_traj2 = plot_trajectory(pseudotime_traj2, info,clusters,gridnum,color_in,pointsize=2 ,arrowlength=0.2,arrowsize=0.8,textsize=15 )
+p_traj3 = plot_trajectory(pseudotime_traj3, info,clusters,gridnum,color_in,pointsize=2 ,arrowlength=0.2,arrowsize=0.8,textsize=15 )
+print(ggarrange( p_traj1[[4]],p_traj2[[4]],p_traj3[[4]],p_traj1[[1]],p_traj2[[1]],p_traj3[[1]],
+          ncol = 3, nrow = 2))
+```
+
+In this tutorial we showed two simple examples of running SpatialPCA on small (n<=5000) and large sample size (n>5000) data. High-resolution spatial map reconstruction in osmFISH data (n=5,275) requires large memory, we recommend performing downstream analysis for osmFISH on a server. All analysis codes in this project could be found here: <http://lulushang.org/docs/Projects/SpatialPCA>.
 
