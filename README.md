@@ -11,3 +11,4 @@ install_github("shangll123/SpatialPCA")
 ```
 
 ## Detailed tutorial: [SpatialPCA tutorial](http://lulushang.org/SpatialPCA.html)
+## All analysis codes could be found [here](http://lulushang.org/docs/Projects/SpatialPCA)
