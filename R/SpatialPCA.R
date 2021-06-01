@@ -90,37 +90,42 @@ return(res)
 #' "Silverman" for Silverman's ‘rule of thumb’ method (1986), "Scott" for Scott (1992) method
 #' @return A scalar of calculated bandwidth.
 #' @export
-bandwidth_select = function(expr,info,method){
 
-  N=dim(info)[1]
-
-if(method=="SJ"){
-
-  bw_SJ=c()
-  for(i in 1:dim(expr)[1]){
-    bw_SJ[i] = bw.SJ(expr[i,],method="dpi")
-  }
-  beta = median(bw_SJ)
-
-}else if(method=="Silverman"){
-  bw_Silverman=c()
-  for(i in 1:dim(expr)[1]){
-    bw_Silverman[i] = bw.nrd0(expr[i,])
-  }
-  beta = median(bw_Silverman)
-}else if(method=="Scott"){
-  bw_Scott=c()
-  for(i in 1:dim(expr)[1]){
-    bw_Scott[i] = bw.nrd(expr[i,])
-  }
-  beta = median(bw_Scott)
+bandwidth_select=function (expr, info, method) 
+{
+    N = dim(info)[1]
+    if (method == "SJ") {
+        
+              bw_SJ = c()
+        for (i in 1:dim(expr)[1]) {
+            tryCatch({ 
+              print(i)
+            bw_SJ[i] = bw.SJ(expr[i, ], method = "dpi")
+             }, error=function(e){cat("Gene",i," :",conditionMessage(e), "\n")})
+        }
+       
+        beta = median(na.omit(bw_SJ))
+    }
+    else if (method == "Silverman") {
+        bw_Silverman = c()
+        for (i in 1:dim(expr)[1]) {
+            tryCatch({ 
+            bw_Silverman[i] = bw.nrd0(expr[i, ])
+            }, error=function(e){cat("Gene",i," :",conditionMessage(e), "\n")})
+        }
+        beta = median(na.omit(bw_Silverman))
+    }
+    else if (method == "Scott") {
+        bw_Scott = c()
+        for (i in 1:dim(expr)[1]) {
+              tryCatch({ 
+            bw_Scott[i] = bw.nrd(expr[i, ])
+             }, error=function(e){cat("Gene",i," :",conditionMessage(e), "\n")})
+        }
+        beta = median(na.omit(bw_Scott))
+    }
+    return(beta)
 }
-
-
-
-  return(beta)
-}
-
 
 
 
