@@ -264,7 +264,6 @@ SpatialPCA_estimate_W = function(parameter, dat_input,PCnum=20){
 #' @param PCnum: Number of spatial PCs.
 #' @return A list of objects
 #' \item{Z_hat}{estimated Z matrix} 
-#' \item{mat_inv}{mat_inv matrix, will be used in high-resolution prediction} 
 #' \item{YM_mat_inv}{YM_mat_inv matrix, will be used in high-resolution prediction} 
 #' @export
 SpatialPCA_estimate_Z = function(parameter,dat_input,estW,PCnum=20){
