@@ -1,0 +1,174 @@
+---
+title: "Spatially Aware Dimension Reduction for Spatial Transcriptomics"
+author:
+- name: Lulu Shang
+  affiliation: University of Michigan
+date: "`r format(Sys.time(), '%B %d %Y')`"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction of SpatialPCA.
+
+SpatialPCA, or spatial probabilistic PCA, is a spatially aware dimension reduction method that aims to infer a low dimensional representation of the gene expression data in spatial transcriptomics. SpatialPCA builds upon the probabilistic version of PCA, incorporates localization information as additional input, and uses a kernel matrix to explicitly model the spatial correlation structure across tissue locations. 
+
+The inferred low dimensional components from SpatialPCA contain spatial correlation information and can be paired with various analytic tools already developed in scRNA-seq studies to enable effective and novel downstream analyses for spatial transcriptomics. The examined downstream analyses of spatial transcriptomics include spatial transcriptomics visualization, spatial domain detection, trajectory inference on the tissue, and high-resolution spatial map reconstruction.
+
+<!-- This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>. -->
+
+<!-- When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this: -->
+
+
+### SpatialPCA installation.
+```{r warning=FALSE}
+library(devtools)
+install_github("shangll123/SpatialPCA")
+```
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(SpatialPCA)
+library(ggplot2)
+library(bluster)
+library(ggpubr)
+library(slingshot)
+```
+
+Load in processed data: a normalized gene expression matrix (m gene by n locations) and a location matrix (n locations by d dimension).
+
+### Example: ST breast cancer data.
+```{r}
+expr=readRDS(system.file("extdata", "ST_tumor_expr.RData", package = "SpatialPCA"))
+info=readRDS(system.file("extdata", "ST_tumor_info.RData", package = "SpatialPCA"))
+ls()
+dim(expr)
+dim(info)
+```
+
+We first prepare data for SpatialPCA functions.
+```{r}
+# We select number of spatial PCs to be 20, and use Gaussian kernel in this data.
+dat = data_prepare_func(expr, info, PCnum = 20, kerneltype = "gaussian")
+```
+
+We run SpatialPCA functions to extract spatial PCs:
+```{r}
+Est_para = SpatialPCA_estimate_parameter(dat_input=dat)
+Est_W = SpatialPCA_estimate_W(Est_para$par, dat)
+Est_Z = SpatialPCA_estimate_Z(Est_para$par,dat,Est_W)
+dat$Est_para = Est_para
+dat$Est_W = Est_W
+dat$Est_Z = Est_Z
+dat$Z_spatial = Est_Z$Z_hat
+```
+
+### 1. Spatial transcriptomics visualization.
+
+#### Visualizing the first 3 spatial PCs.
+We visualize the first three spatial PCs on their tissue locations.
+```{r fig.height=4, fig.width=12}
+p_PCs = plot_factor_value(info,dat$Z_spatial,textmethod="SpatialPCA",pointsize=3.5,textsize=15)
+ggarrange(p_PCs[[1]], p_PCs[[2]], p_PCs[[3]],
+          ncol = 3, nrow = 1)
+```
+
+#### Visualization by RGB plots. 
+We summarize the inferred spatial PCs into three UMAP or tSNE components and visualize the three resulting components with red/green/blue (RGB) colors in the RGB plot. 
+```{r fig.height=4, fig.width=12}
+p_tsne = plot_RGB_tSNE(info,dat$Z_spatial,pointsize=3.5,textsize=15)$figure
+p_umap = plot_RGB_UMAP(info,dat$Z_spatial,pointsize=3.5,textsize=15)$figure
+print(ggarrange(p_tsne, p_umap, ncol = 3, nrow = 1))
+```
+
+### 2. Spatial domain detection.
+Clustering of tissue locations are performed based on the inferred low-dimensional components from SpatialPCA. Tissue domains are detected by SpatialPCA clustering results.
+```{r fig.height=4, fig.width=4}
+walktrap_cluster_SpatialPCA = walktrap_clustering(knearest = c(31), latent_dat=dat$Z_spatial)
+cbp_spatialpca <- c(  "plum1", "dodgerblue","mediumaquamarine",  "palegreen4","chocolate1","lightblue2","#F0E442","red","#CC79A7","mediumpurple","seagreen1")
+clusterlabel = walktrap_cluster_SpatialPCA$cluster_label[[1]]
+colnames(info) = c("sdimx","sdimy")
+loc1 = info$sdimx
+loc2 = info$sdimy
+datt = data.frame(clusterlabel, loc1, loc2)
+p = ggplot(datt, aes(x = loc1, y = loc2, color = clusterlabel)) +
+    		geom_point( alpha = 1,size=3.5) +
+    		scale_color_manual(values = cbp_spatialpca)+
+    		theme_void()+
+    		theme(plot.title = element_text(size = 10,  face = "bold"),
+              text = element_text(size = 10),
+              legend.position = "bottom")
+print(p)
+```
+
+### 3. Trajectory inference.
+Spatial PCs can also be paired with existing trajectory inference algorithms (we used slingshot) to infer the spatial trajectories across tissue locations. 
+```{r}
+meta_data = info
+meta_data$SpatialPCA_Walktrap = walktrap_cluster_SpatialPCA$cluster_label[[1]]
+sim<- SingleCellExperiment(assays = expr)
+reducedDims(sim) <- SimpleList(DRM = t(dat$Z_spatial))
+colData(sim)$Walktrap <- factor(meta_data$SpatialPCA_Walktrap)    
+sim  <-slingshot(sim, clusterLabels = 'Walktrap', reducedDim = 'DRM',start.clus="5" ) # in this data we set tumor region as start cluster, one can change to their preferred start region 
+summary(sim@colData@listData)
+```
+
+We visualize the three trajectories inferred by SpatialPCA on the original data. Arrows point from tissue locations with low pseudo-time to tissue locations with high pseudo-time. 
+```{r fig.height=8, fig.width=12}
+pseudotime_traj1 = sim@colData@listData$slingPseudotime_1
+pseudotime_traj2 = sim@colData@listData$slingPseudotime_2
+pseudotime_traj3 = sim@colData@listData$slingPseudotime_3
+clusterlabels = meta_data$SpatialPCA_Walktrap
+gridnum = 10
+color_in = c(  "plum1", "dodgerblue","mediumaquamarine",  "palegreen4", "chocolate1","lightblue2","#F0E442",  "black","#CC79A7","mediumpurple","seagreen1")
+p_traj1 = plot_trajectory(pseudotime_traj1, info,clusterlabels,gridnum,color_in,pointsize=4 ,arrowlength=0.2,arrowsize=0.8,textsize=15 )
+p_traj2 = plot_trajectory(pseudotime_traj2, info,clusterlabels,gridnum,color_in,pointsize=4 ,arrowlength=0.2,arrowsize=0.8,textsize=15 )
+p_traj3 = plot_trajectory(pseudotime_traj3, info,clusterlabels,gridnum,color_in,pointsize=4 ,arrowlength=0.2,arrowsize=0.8,textsize=15 )
+print(ggarrange( p_traj1[[4]],p_traj2[[4]],p_traj3[[4]],p_traj1[[1]],p_traj2[[1]],p_traj3[[1]],
+          ncol = 3, nrow = 2))
+```
+
+### 4. High-resolution spatial map reconstruction.
+In SpatialPCA, the correlation among spatial PCs allows us to construct a refined spatial map with a resolution much higher than that of the original study.
+```{r fig.height=5, fig.width=5}
+Z_high = high_resolution(dat)
+walktrap_SpatialPCA_highresolution = walktrap_clustering(knearest = 84, Z_high$Z_star)
+cbp_high = c(  "plum1", "palegreen4","mediumaquamarine",  "dodgerblue", "chocolate1", "#F0E442","lightblue2")
+loc1=unlist(Z_high$Location_star[,1])
+loc2=unlist(Z_high$Location_star[,2])
+Z_high_clusters = walktrap_SpatialPCA_highresolution$cluster_label[[1]]
+p3 = plot_cluster(loc1,loc2,Z_high_clusters,pointsize=2,text_size=10 ,title_in="High-resolution",cbp_high)
+print(p3)
+```
+
+### 5. High-resolution spatial map reconstruction.
+We then perform trajectory inference on the high-resolution spatial map. 
+```{r}
+simhigh = SingleCellExperiment(Z_high$Z_star)
+reducedDims(simhigh) = SimpleList(DRM = t(Z_high$Z_star))
+colData(simhigh)$Walktrap = factor(Z_high_clusters)    
+simhigh = slingshot(simhigh, clusterLabels = 'Walktrap', reducedDim = 'DRM',start.clus="5") # still set tumor region as start cluster in slingshot
+summary(simhigh@colData@listData)
+```
+
+Visualization of the three trajectories inferred on the constructed high-resolution spatial map. Arrows point from locations with low pseudo-time to locations with high pseudo-time. The trajectories inferred from the high-resolution spatial PCs display consistent but refined spatial patterns.
+```{r fig.height=8, fig.width=12}
+
+Z_high_pseudotime_traj1 = simhigh@colData@listData$slingPseudotime_1
+Z_high_pseudotime_traj2 = simhigh@colData@listData$slingPseudotime_2
+Z_high_pseudotime_traj3 = simhigh@colData@listData$slingPseudotime_3
+cluster = Z_high_clusters
+gridnum = 20
+color_in = c(  "plum1", "palegreen4","mediumaquamarine",  "dodgerblue", "chocolate1",
+            "#F0E442","lightblue2",  "black")
+p_traj1 = plot_trajectory(Z_high_pseudotime_traj1, Z_high$Location_star,cluster,gridnum,color_in,pointsize=1.5 ,arrowlength=0.2,arrowsize=0.8,textsize=15 )
+p_traj2 = plot_trajectory(Z_high_pseudotime_traj2, Z_high$Location_star,cluster,gridnum,color_in,pointsize=1.5 ,arrowlength=0.2,arrowsize=0.8,textsize=15 )
+p_traj3 = plot_trajectory(Z_high_pseudotime_traj3, Z_high$Location_star,cluster,gridnum,color_in,pointsize=1.5 ,arrowlength=0.2,arrowsize=0.8,textsize=15 )
+
+print(ggarrange( p_traj1[[4]],p_traj2[[4]],p_traj3[[4]],p_traj1[[1]],p_traj2[[1]],p_traj3[[1]],
+          ncol = 3, nrow = 2))
+```
+
