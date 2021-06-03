@@ -79,7 +79,7 @@ if(dim(info)[1]<largedatasize_threshold){
   bandwidthtype="SJ"
   bandwidth = bandwidth_select(expr, info,method=bandwidthtype)
   K=kernel_build(kernelpara=kerneltype, ED2=ED2,bandwidth) 
-  res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q,"K"=K,"bandwidth"=bandwidth,"PCnum"=PCnum)
+  res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q,"K"=K,"bandwidth"=bandwidth,"PCnum"=PCnum,kerneltype = "gaussian")
   return(res)
 }else if(dim(info)[1]>=largedatasize_threshold){
   bandwidthtype="Silverman"
@@ -89,7 +89,7 @@ if(dim(info)[1]<largedatasize_threshold){
   eigen_res = eigs_sym(K, k=PCnum, which = "LM")
   delta = eigen_res$values
   U = eigen_res$vectors
-  res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q,"K"=K,"bandwidth"=bandwidth,"YMt"=YMt,"delta"=delta,"U"=U,"PCnum"=PCnum)
+  res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q,"K"=K,"bandwidth"=bandwidth,"YMt"=YMt,"delta"=delta,"U"=U,"PCnum"=PCnum,kerneltype = "gaussian")
   return(res)
 }
 
@@ -498,8 +498,18 @@ n = dim(dat_input$Y)[2]
 #' \item{Z_star}{Predicted Z matrix on new locations} 
 #' \item{Location_star}{Coordinates of new locations} 
 #' @export
-high_resolution = function(info, K, kernelpara, ED,est_log_tau, est_W, est_sigma0, est_Z){
+
+
+high_resolution = function(info, dat_input){
+K = dat_input$K
 PCnum = dat_input$PCnum
+kernelpara = dat_input$kerneltype
+ED = dat_input$ED
+est_log_tau = dat_input$Est_para$par
+est_W = dat_input$Est_W[[1]]
+est_sigma0 = dat_input$Est_W[[2]][1,1]
+est_Z = dat_input$Est_Z
+bandwidth = dat_input$bandwidth
 n=dim(info)[1]
 dis = c()
 for(i in 1:dim(ED)[1]){
