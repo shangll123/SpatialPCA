@@ -99,7 +99,7 @@ bandwidth_select=function (expr, info, method)
               bw_SJ = c()
         for (i in 1:dim(expr)[1]) {
             tryCatch({ 
-              print(i)
+              #print(i)
             bw_SJ[i] = bw.SJ(expr[i, ], method = "dpi")
              }, error=function(e){cat("Gene",i," :",conditionMessage(e), "\n")})
         }
