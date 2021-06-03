@@ -193,11 +193,11 @@ SpatialPCA_estimate = function(param_ini,dat_input){
     n = dim(dat_input$Y)[2]
     sum_det=0
     q=dat_input$q 
-    Sigma=tau*K
+    Sigma=tau*dat_input$K
     Sigma_tilde=Sigma+diag(dat_input$n)
     L=t(chol(Sigma_tilde)) 
     L_H=t(chol(t(dat_input$H) %*% solve(Sigma_tilde) %*% dat_input$H))
-    K_inv = solve(K)
+    K_inv = solve(dat_input$K)
     G_each = dat_input$Y %*% dat_input$M %*% solve(dat_input$M +1/tau*K_inv)  %*% dat_input$M%*%t(dat_input$Y)
     for(i_d in 1:PCnum){
     sum_det=sum_det+(sum(log(diag(L)))+sum(log(diag(L_H))))
@@ -255,7 +255,7 @@ SpatialPCA_estimate_W = function(parameter, dat_input){
    param = parameter
     tau=exp(param[1])
     PCnum = dat_input$PCnum
-    Sigma=tau*K
+    Sigma=tau*dat_input$K
     Y = dat_input$Y
     n=dim(dat_input$Y)[2]
     q=dat_input$q
@@ -264,7 +264,7 @@ SpatialPCA_estimate_W = function(parameter, dat_input){
     L=t(chol(Sigma_tilde))
     L_H=t(chol(t(dat_input$H)%*%solve(Sigma_tilde)%*% dat_input$H))
     sum_det=0
-    K_inv = solve(K)
+    K_inv = solve(dat_input$K)
     G_each = dat_input$Y %*% dat_input$M %*% solve(dat_input$M +1/tau*K_inv)  %*% dat_input$M%*%t(dat_input$Y)
     for(i_d in 1:PCnum){
     sum_det=sum_det+(sum(log(diag(L)))+sum(log(diag(L_H))))
@@ -295,20 +295,20 @@ SpatialPCA_estimate_W = function(parameter, dat_input){
 #' @export
 SpatialPCA_estimate_Z = function(parameter,dat_input,estW){
     PCnum = dat_input$PCnum
-n = dim(dat_input$Y)[2]
+    n = dim(dat_input$Y)[2]
     Z_hat = matrix(0, PCnum, n)
     tau = exp(parameter[1])
     W_hat = estW[[1]]
     sigma_2_0_here = estW[[2]]
     sigma_2_0_here = as.numeric(sigma_2_0_here)
 
-    mat_inv = solve( diag(n)+tau *  K %*% dat_input$M  )
+    mat_inv = solve( diag(n)+tau *  dat_input$K %*% dat_input$M  )
     YM_mat_inv = dat_input$YM %*% mat_inv
     for (i_d in 1:PCnum) {
         print(i_d)
         middle_part = t(W_hat[, i_d]) %*% YM_mat_inv
         middle_part = as.matrix(middle_part)
-        Z_hat[i_d, ] = tau * middle_part %*%   K
+        Z_hat[i_d, ] = tau * middle_part %*%   dat_input$K
     }
     return(list(Z_hat = Z_hat, YM_mat_inv =  1/sigma_2_0_here*YM_mat_inv))
 }
@@ -466,13 +466,13 @@ n = dim(dat_input$Y)[2]
     sigma_2_0_here = estW[[2]]
     sigma_2_0_here = as.numeric(sigma_2_0_here)
 
-    mat_inv = solve(tau * K %*% dat_input$M +  diag(n))
+    mat_inv = solve(tau * dat_input$K %*% dat_input$M +  diag(n))
     YM_mat_inv = dat_input$YM %*% mat_inv
     for (i_d in 1:PCnum) {
         print(i_d)
         middle_part = t(W_hat[, i_d]) %*% YM_mat_inv
         middle_part = as.matrix(middle_part)
-        Z_hat[i_d, ] = tau * middle_part %*%   K
+        Z_hat[i_d, ] = tau * middle_part %*%   dat_input$K
     }
     return(list(Z_hat = Z_hat, mat_inv = 1/sigma_2_0_here*mat_inv, YM_mat_inv = YM_mat_inv))
 }
