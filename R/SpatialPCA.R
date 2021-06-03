@@ -163,7 +163,7 @@ kernel_build = function(kernelpara="gaussian", ED2,beta){
 SpatialPCA_estimate = function(param_ini,dat_input,PCnum){
    param = param_ini
     tau=exp(param[1])
-    print(param[1])
+   # print(param[1])
     k = dim(dat_input$Y)[1]
     n = dim(dat_input$Y)[2]
     sum_det=0
@@ -308,7 +308,7 @@ SpatialPCA_estimate_paras_largedata = function(param_ini,dat_input,PCnum=20){
   suppressMessages(require(RSpectra))
     set.seed(1234)
     param = param_ini
-    print(param)
+    #print(param)
     tau=exp(param[1])
     k = dim(dat_input$Y)[1]
     n = dim(dat_input$Y)[2]
