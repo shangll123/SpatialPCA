@@ -78,13 +78,13 @@ if(sum(is.na(covariate))==1){
 if(dim(info)[1]<largedatasize_threshold){
   bandwidthtype="SJ"
   bandwidth = bandwidth_select(expr, info,method=bandwidthtype)
-  K=kernel_build(kernelpara=kerneltype, ED2=dat_large$ED2,bandwidth) 
+  K=kernel_build(kernelpara=kerneltype, ED2=ED2,bandwidth) 
   res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q,"K"=K,"bandwidth"=bandwidth,"PCnum"=PCnum)
   return(res)
 }else if(dim(info)[1]>=largedatasize_threshold){
   bandwidthtype="Silverman"
   bandwidth = bandwidth_select(expr, info,method=bandwidthtype)
-  K=kernel_build(kernelpara=kerneltype, ED2=dat_large$ED2,bandwidth) 
+  K=kernel_build(kernelpara=kerneltype, ED2=ED2,bandwidth) 
   YMt = t(YM)
   eigen_res = eigs_sym(K, k=PCnum, which = "LM")
   delta = eigen_res$values
