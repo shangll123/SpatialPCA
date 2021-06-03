@@ -40,6 +40,7 @@ data_prepare_func = function(expr,info,covariate=NA, PCnum = 20, kerneltype = "g
     stop("ERROR - expression samples size doesn't agree with the number of locations")
   }
 
+expr=scale_expr(expr)
 X = scale(info)
 n = dim(X)[1]
 p=dim(X)[2] 
