@@ -283,7 +283,7 @@ n = dim(dat_input$Y)[2]
         middle_part = as.matrix(middle_part)
         Z_hat[i_d, ] = tau * middle_part %*%   K
     }
-    return(list(Z_hat = Z_hat, mat_inv = 1/sigma_2_0_here*mat_inv, YM_mat_inv = YM_mat_inv))
+    return(list(Z_hat = Z_hat, YM_mat_inv =  1/sigma_2_0_here*YM_mat_inv))
 }
 
 
@@ -527,7 +527,7 @@ Sigma_all = sigma_2*K_all
 Sigma_YX = Sigma_all[(num_obs+1):(num_obs+num_obs_all),1:num_obs]
 
 z_star=matrix(0,PCnum,num_obs_all)
-mat_inv = est_Z$mat_inv
+
       for(i_d in 1:PCnum){
         print(i_d)
         middle_part=t(W_hat[,i_d])%*%est_Z$YM_mat_inv
