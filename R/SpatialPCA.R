@@ -34,7 +34,7 @@ print(paste0("Input expression data: ",dim(expr)[1]," genes on ",dim(expr)[2]," 
 #' \item{Y}{expression matrix}
 #' \item{q}{number of covariates, if no input covariate is avaliable then q=1 because we added an intercept in the function.}
 #' @export
-data_prepare_func = function(expr,info,covariate=NA){
+data_prepare_func = function(expr,info,covariate=NA, PCnum = 20, kerneltype = "gaussian",largedatasize_threshold=5000){
 
   if (ncol(expr) != nrow(info)) {
     stop("ERROR - expression samples size doesn't agree with the number of locations")
@@ -73,10 +73,33 @@ if(sum(is.na(covariate))==1){
   ED2 = ED^2
   YM = Y%*%M
 }
-res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q)
-return(res)
+
+if(dim(info)[1]<largedatasize_threshold){
+  bandwidthtype="SJ"
+  bandwidth = bandwidth_select(expr, info,method=bandwidthtype)
+  K=kernel_build(kernelpara=kerneltype, ED2=dat_large$ED2,bandwidth) 
+  res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q,"K"=K,"bandwidth"=bandwidth,"PCnum"=PCnum)
+  return(res)
+}else if(dim(info)[1]>=largedatasize_threshold){
+  bandwidthtype="Silverman"
+  bandwidth = bandwidth_select(expr, info,method=bandwidthtype)
+  K=kernel_build(kernelpara=kerneltype, ED2=dat_large$ED2,bandwidth) 
+  YMt = t(YM)
+  eigen_res = eigs_sym(K, k=PCnum, which = "LM")
+  delta = eigen_res$values
+  U = eigen_res$vectors
+  res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q,"K"=K,"bandwidth"=bandwidth,"YMt"=YMt,"delta"=delta,"U"=U,"PCnum"=PCnum)
+  return(res)
+}
 
 }
+
+
+
+
+
+
+
 
 
 
@@ -160,9 +183,10 @@ kernel_build = function(kernelpara="gaussian", ED2,beta){
 #' @param PCnum: Number of spatial PCs.
 #' @return A numeric value of -log likelihood.
 #' @export
-SpatialPCA_estimate = function(param_ini,dat_input,PCnum){
+SpatialPCA_estimate = function(param_ini,dat_input){
    param = param_ini
     tau=exp(param[1])
+    PCnum = dat_input$PCnum
    # print(param[1])
     k = dim(dat_input$Y)[1]
     n = dim(dat_input$Y)[2]
@@ -200,10 +224,11 @@ SpatialPCA_estimate = function(param_ini,dat_input,PCnum){
 #' \item{message}{A character string giving any additional information returned by the optimizer}
 #' \item{T_m_trend}{Total running time for this function}
 #' @export
-SpatialPCA_estimate_parameter = function(maxiter=300,log_tau_ini=0,dat_input,PCnum=20){
+SpatialPCA_estimate_parameter = function(maxiter=300,log_tau_ini=0,dat_input){
   suppressMessages(require(RSpectra))
   set.seed(1234)
   param_ini=log_tau_ini
+  PCnum = dat_input$PCnum
   start_time <- Sys.time()
   m_trend=try(optim(param_ini, SpatialPCA_estimate,dat_input=dat_input,PCnum=PCnum,control = list(maxit = maxiter), lower = -3, upper = 3,method="Brent"),silent=T)
   end_time <- Sys.time()
@@ -225,9 +250,10 @@ return(m_trend)
 #' @param PCnum: Number of spatial PCs.
 #' @return A list of objects, the first one is estimated W matrix under given parameter tau; the second one is estimated sigma_0 value.
 #' @export
-SpatialPCA_estimate_W = function(parameter, dat_input,PCnum=20){
+SpatialPCA_estimate_W = function(parameter, dat_input){
    param = parameter
     tau=exp(param[1])
+    PCnum = dat_input$PCnum
     Sigma=tau*K
     Y = dat_input$Y
     n=dim(dat_input$Y)[2]
@@ -266,7 +292,8 @@ SpatialPCA_estimate_W = function(parameter, dat_input,PCnum=20){
 #' \item{Z_hat}{estimated Z matrix} 
 #' \item{YM_mat_inv}{YM_mat_inv matrix, will be used in high-resolution prediction} 
 #' @export
-SpatialPCA_estimate_Z = function(parameter,dat_input,estW,PCnum=20){
+SpatialPCA_estimate_Z = function(parameter,dat_input,estW){
+    PCnum = dat_input$PCnum
 n = dim(dat_input$Y)[2]
     Z_hat = matrix(0, PCnum, n)
     tau = exp(parameter[1])
@@ -303,11 +330,12 @@ F_funct_sameG = function(X,G){ # G is a matrix
 #' @param PCnum: Number of spatial PCs.
 #' @return A numeric value of -log likelihood.
 #' @export
-SpatialPCA_estimate_paras_largedata = function(param_ini,dat_input,PCnum=20){
+SpatialPCA_estimate_paras_largedata = function(param_ini,dat_input){
 
   suppressMessages(require(RSpectra))
     set.seed(1234)
     param = param_ini
+    PCnum = dat_input$PCnum
     #print(param)
     tau=exp(param[1])
     k = dim(dat_input$Y)[1]
@@ -358,11 +386,12 @@ SpatialPCA_estimate_paras_largedata = function(param_ini,dat_input,PCnum=20){
 #' \item{message}{A character string giving any additional information returned by the optimizer}
 #' \item{T_m_trend}{Total running time for this function}
 #' @export
-SpatialPCA_estimate_parameter_largedata = function(maxiter=300,log_tau_ini=0,dat_input,PCnum=20){
+SpatialPCA_estimate_parameter_largedata = function(maxiter=300,log_tau_ini=0,dat_input){
 
   suppressMessages(require(RSpectra))
   set.seed(1234)
   param_ini=log_tau_ini
+  PCnum = dat_input$PCnum
   start_time <- Sys.time()
   m_trend=try(optim(param_ini, SpatialPCA_estimate_paras_largedata,dat_input=dat_input,PCnum=PCnum,control = list(maxit = maxiter), lower = -10, upper = 10,method="Brent"),silent=T)
   end_time <- Sys.time()
@@ -385,13 +414,13 @@ return(m_trend)
 #' @param PCnum: Number of spatial PCs.
 #' @return A list of objects, the first one is estimated W matrix under given parameter tau; the second one is estimated sigma_0 value.
 #' @export
-SpatialPCA_estimate_W_largedata = function(parameter,dat_input,PCnum=20){
+SpatialPCA_estimate_W_largedata = function(parameter,dat_input){
 
  suppressMessages(require(RSpectra))
 
     param = parameter
     tau=exp(param[1])
-
+    PCnum = dat_input$PCnum
     k = dim(dat_input$Y)[1]
     n = dim(dat_input$Y)[2]
     q=dat_input$q
@@ -427,7 +456,8 @@ SpatialPCA_estimate_W_largedata = function(parameter,dat_input,PCnum=20){
 #' \item{mat_inv}{mat_inv matrix, will be used in high-resolution prediction} 
 #' \item{YM_mat_inv}{YM_mat_inv matrix, will be used in high-resolution prediction} 
 #' @export
-SpatialPCA_estimate_Z_largedata = function(parameter,dat_input,estW,PCnum=20 ){
+SpatialPCA_estimate_Z_largedata = function(parameter,dat_input,estW){
+    PCnum = dat_input$PCnum
 n = dim(dat_input$Y)[2]
     Z_hat = matrix(0, PCnum, n)
     tau = exp(parameter[1])
@@ -467,8 +497,8 @@ n = dim(dat_input$Y)[2]
 #' \item{Z_star}{Predicted Z matrix on new locations} 
 #' \item{Location_star}{Coordinates of new locations} 
 #' @export
-high_resolution = function(info, K, kernelpara, ED,est_log_tau, est_W, est_sigma0, est_Z,PCnum){
-#high_resolution = function(info, K, result,est_Z){
+high_resolution = function(info, K, kernelpara, ED,est_log_tau, est_W, est_sigma0, est_Z){
+PCnum = dat_input$PCnum
 n=dim(info)[1]
 dis = c()
 for(i in 1:dim(ED)[1]){
