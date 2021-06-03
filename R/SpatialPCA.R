@@ -161,17 +161,19 @@ kernel_build = function(kernelpara="gaussian", ED2,beta){
 #' @return A numeric value of -log likelihood.
 #' @export
 SpatialPCA_estimate = function(param_ini,dat_input,PCnum){
-    param = param_ini
+   param = param_ini
     tau=exp(param[1])
+    print(param[1])
     k = dim(dat_input$Y)[1]
     n = dim(dat_input$Y)[2]
     sum_det=0
     q=dat_input$q 
     Sigma=tau*K
     Sigma_tilde=Sigma+diag(dat_input$n)
-    L=t(chol(Sigma_tilde))
+    L=t(chol(Sigma_tilde)) 
     L_H=t(chol(t(dat_input$H) %*% solve(Sigma_tilde) %*% dat_input$H))
-    G_each = dat_input$Y %*% dat_input$M %*% solve(Sigma%*%dat_input$M+diag(dat_input$n)) %*% Sigma %*% dat_input$M%*%t(dat_input$Y)
+    K_inv = solve(K)
+    G_each = dat_input$Y %*% dat_input$M %*% solve(dat_input$M +1/tau*K_inv)  %*% dat_input$M%*%t(dat_input$Y)
     for(i_d in 1:PCnum){
     sum_det=sum_det+(sum(log(diag(L)))+sum(log(diag(L_H))))
   }
@@ -224,7 +226,7 @@ return(m_trend)
 #' @return A list of objects, the first one is estimated W matrix under given parameter tau; the second one is estimated sigma_0 value.
 #' @export
 SpatialPCA_estimate_W = function(parameter, dat_input,PCnum=20){
-    param = parameter
+   param = parameter
     tau=exp(param[1])
     Sigma=tau*K
     Y = dat_input$Y
@@ -235,7 +237,8 @@ SpatialPCA_estimate_W = function(parameter, dat_input,PCnum=20){
     L=t(chol(Sigma_tilde))
     L_H=t(chol(t(dat_input$H)%*%solve(Sigma_tilde)%*% dat_input$H))
     sum_det=0
-    G_each = Y%*%dat_input$M%*%solve(Sigma%*%dat_input$M+diag(n))%*%Sigma%*%dat_input$M%*%t(Y)
+    K_inv = solve(K)
+    G_each = dat_input$Y %*% dat_input$M %*% solve(dat_input$M +1/tau*K_inv)  %*% dat_input$M%*%t(dat_input$Y)
     for(i_d in 1:PCnum){
     sum_det=sum_det+(sum(log(diag(L)))+sum(log(diag(L_H))))
   }
@@ -265,25 +268,22 @@ SpatialPCA_estimate_W = function(parameter, dat_input,PCnum=20){
 #' \item{YM_mat_inv}{YM_mat_inv matrix, will be used in high-resolution prediction} 
 #' @export
 SpatialPCA_estimate_Z = function(parameter,dat_input,estW,PCnum=20){
-
-    n=dim(dat_input$Y)[2]
-    Z_hat=matrix(0,PCnum,n)
-    tau=exp(parameter[1])
-
+n = dim(dat_input$Y)[2]
+    Z_hat = matrix(0, PCnum, n)
+    tau = exp(parameter[1])
     W_hat = estW[[1]]
-    sigma_2_0_here=estW[[2]]
-    sigma_2_0_here=as.numeric(sigma_2_0_here)
-        sigma_2 = tau*sigma_2_0_here
-        Sigma=sigma_2*K
-        mat_inv = solve(Sigma%*%dat_input$M+sigma_2_0_here*diag(n))
-        YM_mat_inv = dat_input$YM%*%mat_inv
-      for(i_d in 1:PCnum){
+    sigma_2_0_here = estW[[2]]
+    sigma_2_0_here = as.numeric(sigma_2_0_here)
+
+    mat_inv = solve( diag(n)+tau *  K %*% dat_input$M  )
+    YM_mat_inv = dat_input$YM %*% mat_inv
+    for (i_d in 1:PCnum) {
         print(i_d)
-        middle_part=t(W_hat[,i_d])%*%YM_mat_inv
+        middle_part = t(W_hat[, i_d]) %*% YM_mat_inv
         middle_part = as.matrix(middle_part)
-        Z_hat[i_d,]=middle_part%*%Sigma
+        Z_hat[i_d, ] = tau * middle_part %*%   K
     }
-  return(list("Z_hat"=Z_hat,"mat_inv"=mat_inv,"YM_mat_inv"=YM_mat_inv))
+    return(list(Z_hat = Z_hat, mat_inv = 1/sigma_2_0_here*mat_inv, YM_mat_inv = YM_mat_inv))
 }
 
 
@@ -307,24 +307,33 @@ F_funct_sameG = function(X,G){ # G is a matrix
 SpatialPCA_estimate_paras_largedata = function(param_ini,dat_input,PCnum=20){
 
   suppressMessages(require(RSpectra))
-
     set.seed(1234)
     param = param_ini
-    #print(param)
+    print(param)
     tau=exp(param[1])
     k = dim(dat_input$Y)[1]
     n = dim(dat_input$Y)[2]
-    sum_det=0
     q=dat_input$q
 
-    	Sigma_middle_inv = dat_input$U[,c(1:PCnum)] %*% diag(1/(tau*dat_input$delta+1))[c(1:PCnum),c(1:PCnum)] %*% t(dat_input$U[,c(1:PCnum)])
-    	G_each = as.matrix(tau * dat_input$YM%*% Sigma_middle_inv %*% dat_input$KYM )
-    	Xt_Sigma_middle_inv_X = t(dat_input$H)%*% Sigma_middle_inv %*% dat_input$H
-    	sum_det_each = 0.5*log(prod(tau*dat_input$delta+1)) +0.5*log(sum(Xt_Sigma_middle_inv_X))
-
-    for(i_d in 1:PCnum){
-      sum_det = sum_det+sum_det_each
-    }
+# # Q = (\tau *K+I)^-1
+    UtU = t(dat_input$U) %*% dat_input$U
+    Q_middle_inv = solve(UtU + 1/tau *diag( 1/dat_input$delta)) # d by d
+    Q = diag(n)-dat_input$U %*% Q_middle_inv %*% t(dat_input$U ) # n by n
+    XtQ = t(dat_input$H) %*% Q # q by n
+    XtQX = XtQ %*% dat_input$H
+# P=(I+\tau^-1 K^-1)^-1
+    P_middle_inv = solve(UtU + tau *diag( dat_input$delta)) # d by d
+    P = diag(n)-dat_input$U %*% P_middle_inv %*% t(dat_input$U ) # n by n
+    XtP = t(dat_input$H) %*% P # q by n
+    XtPX = XtP %*% dat_input$H 
+    mat_middle_inv = solve(-t(dat_input$H) %*% dat_input$H +XtPX ) # q by q
+    W_middle_inv = P - t(XtP) %*% mat_middle_inv %*% XtP # n by n
+# W_middle_inv = (M+\tau^-1 K^-1)^-1
+    G_each = as.matrix(dat_input$YM%*% W_middle_inv %*% dat_input$YMt ) # m by m
+# det(\tau *K +I) = det(\tau^-1 *D^-1 + UtU)*det(\tau *D)
+    det_tauK_I = det(1/tau*diag(1/dat_input$delta)+ UtU) * det(tau*diag(dat_input$delta))
+    sum_det=0
+    sum_det=sum_det+(0.5*log(det_tauK_I)+0.5*log(det(XtQX))  )*PCnum
     W_est_here = eigs_sym(G_each, k=PCnum, which = "LM")$vectors
     -(-sum_det -(k*(n-q))/2*log(dat_input$tr_YMY+F_funct_sameG(W_est_here,G_each)))
 }
@@ -379,7 +388,7 @@ return(m_trend)
 #' @export
 SpatialPCA_estimate_W_largedata = function(parameter,dat_input,PCnum=20){
 
-  suppressMessages(require(RSpectra))
+ suppressMessages(require(RSpectra))
 
     param = parameter
     tau=exp(param[1])
@@ -387,16 +396,16 @@ SpatialPCA_estimate_W_largedata = function(parameter,dat_input,PCnum=20){
     k = dim(dat_input$Y)[1]
     n = dim(dat_input$Y)[2]
     q=dat_input$q
-	
-    	Sigma_middle_inv = dat_input$U[,c(1:PCnum)] %*% diag(1/(tau*dat_input$delta+1))[c(1:PCnum),c(1:PCnum)] %*% t(dat_input$U[,c(1:PCnum)])
-    	G_each = as.matrix(tau * dat_input$YM%*% Sigma_middle_inv %*% dat_input$KYM )
-    	Xt_Sigma_middle_inv_X = t(dat_input$H)%*% Sigma_middle_inv %*% dat_input$H
-    	sum_det_each = 0.5*log(prod(tau*dat_input$delta+1)) +0.5*log(sum(Xt_Sigma_middle_inv_X))
-
-    sum_det=0
-    for(i_d in 1:PCnum){
-      sum_det = sum_det+sum_det_each 
-    }
+    UtU = t(dat_input$U) %*% dat_input$U
+# P=(I+\tau^-1 K^-1)^-1
+    P_middle_inv = solve(UtU + tau *diag( dat_input$delta)) # d by d
+    P = diag(n)-dat_input$U %*% P_middle_inv %*% t(dat_input$U ) # n by n
+    XtP = t(dat_input$H) %*% P # q by n
+    XtPX = XtP %*% dat_input$H
+    mat_middle_inv = solve(-t(dat_input$H) %*% dat_input$H +XtPX ) # q by q
+    W_middle_inv = P - t(XtP) %*% mat_middle_inv %*% XtP # n by n
+# W_middle_inv = (M+\tau^-1 K^-1)^-1
+    G_each = as.matrix(dat_input$YM%*% W_middle_inv %*% dat_input$YMt )
     W_est_here = eigs_sym(G_each, k=PCnum, which = "LM")$vectors
     return_list=list(1:2)
     return_list[[1]]=W_est_here
@@ -420,25 +429,22 @@ SpatialPCA_estimate_W_largedata = function(parameter,dat_input,PCnum=20){
 #' \item{YM_mat_inv}{YM_mat_inv matrix, will be used in high-resolution prediction} 
 #' @export
 SpatialPCA_estimate_Z_largedata = function(parameter,dat_input,estW,PCnum=20 ){
-
-    suppressMessages(require(RSpectra))
-    n=dim(dat_input$Y)[2]
-    Z_hat=matrix(0,PCnum,n)
-    tau=exp(parameter[1])
+n = dim(dat_input$Y)[2]
+    Z_hat = matrix(0, PCnum, n)
+    tau = exp(parameter[1])
     W_hat = estW[[1]]
-    sigma_2_0_here=estW[[2]]
-    sigma_2_0_here=as.numeric(sigma_2_0_here)
-        sigma_2 = tau*sigma_2_0_here
-        Sigma=sigma_2*K
-        mat_inv = solve(Sigma%*%dat_input$M+sigma_2_0_here*diag(n))
-        YM_mat_inv = dat_input$YM%*%mat_inv
-      for(i_d in 1:PCnum){
+    sigma_2_0_here = estW[[2]]
+    sigma_2_0_here = as.numeric(sigma_2_0_here)
+
+    mat_inv = solve(tau * K %*% dat_input$M +  diag(n))
+    YM_mat_inv = dat_input$YM %*% mat_inv
+    for (i_d in 1:PCnum) {
         print(i_d)
-        middle_part=t(W_hat[,i_d])%*%YM_mat_inv
+        middle_part = t(W_hat[, i_d]) %*% YM_mat_inv
         middle_part = as.matrix(middle_part)
-        Z_hat[i_d,]=middle_part%*%Sigma
+        Z_hat[i_d, ] = tau * middle_part %*%   K
     }
-  return(list("Z_hat"=Z_hat,"mat_inv"=mat_inv,"YM_mat_inv"=YM_mat_inv))
+    return(list(Z_hat = Z_hat, mat_inv = 1/sigma_2_0_here*mat_inv, YM_mat_inv = YM_mat_inv))
 }
 
 
