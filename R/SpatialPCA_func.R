@@ -19,9 +19,10 @@ print(paste0("Input expression data: ",dim(expr)[1]," genes on ",dim(expr)[2]," 
 #' @param expr: A m gene by n location of gene expression matrix.
 #' @param info: A n cell by k dimension of location matrix. n is cell number, k is dimension (k=2 when location is 2D; k=3 when location is 3D)
 #' @param covariate: A covariate by n location matrix. If there is no covariate, the default is "NA". 
-#' @param PCnum: An integer. It is the number of PCs to be extracted using SpatialPCA.
 #' @param kerneltype: An character string. It is the type of kernel to be used in SpatialPCA. Default is "gaussian", other options include "cauchy" for cauchy kernel and "quadratic" for rational quadratic kernel.
-#' @param threshold: An integer. It is any sample size larger than this number is considered as a large sample size. Default is 5000.
+#' @param bandwidthtype: A character string representing method used in bandwidth selection: "SJ" for Sheather & Jones (1991) method, 
+#' "Silverman" for Silverman's ‘rule of thumb’ method (1986), "Scott" for Scott (1992) method.
+#' @param fast: A logical value, select "TRUE" to accrelerate the algorithm by performing low-rank approximation on the kernel matrix, otherwise "FALSE". 
 #' @return A list of data matrices.
 #' \item{YM}{YM matrix.}
 #' \item{ED}{ED distance matrix.}
@@ -37,11 +38,11 @@ print(paste0("Input expression data: ",dim(expr)[1]," genes on ",dim(expr)[2]," 
 #' \item{YMt}{Transpose of YM matrix.}
 #' \item{delta}{Eigenvalues of the kernel matrix.}
 #' \item{U}{Eigenvectors of the kernel matrix.}
-#' \item{PCnum}{Number of spatial PCs to be extracted using SpatialPCA.}
-#' \item{threshold}{Any sample size larger than this threshold is considered as a large sample size.}
+#' \item{kerneltype}{The type of kernel function used.}
+#' \item{bandwidthtype}{The type of bandwidth selection method used.}
 #' \item{location}{A n cell by k dimension of location matrix.}
 #' @export
-data_prepare_func = function(expr,info,covariate=NA, PCnum = 20, kerneltype = "gaussian",threshold=5000){
+data_prepare_func = function(expr,info,covariate=NA,  kerneltype = "gaussian",bandwidthtype="SJ",fast = FALSE){
 
   if (ncol(expr) != nrow(info)) {
     stop("ERROR - expression samples size doesn't agree with the number of locations")
@@ -61,6 +62,7 @@ if(sum(is.na(covariate))==1){
   ED = as.matrix(dist(scale(info[ ,1:2])))
   ED2 = ED^2
   YM = Y%*%M
+  YMt = t(YM)
   q=1
 }else{
 
@@ -80,36 +82,45 @@ if(sum(is.na(covariate))==1){
   ED = as.matrix(dist(scale(info[ ,1:2])))
   ED2 = ED^2
   YM = Y%*%M
+  YMt = t(YM)
 }
 
-if(dim(info)[1]<threshold){
-  bandwidthtype="SJ"
+
+print("Kernel matrix!")
   bandwidth = bandwidth_select(expr, info,method=bandwidthtype)
   K=kernel_build(kernelpara=kerneltype, ED2=ED2,bandwidth) 
-  print("Kernel matrix built!")
-  YMt = t(YM)
+  
+suppressMessages(require(RSpectra))
+
+if(fast==FALSE){
+  print("Eigen decomposition on kernel matrix!")
   eigen_res = eigen(K)
   delta = eigen_res$values
   U = eigen_res$vectors
-  print("Eigen decomposition on kernel matrix finished!")
-  res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q,"K"=K,"bandwidth"=bandwidth,"YMt"=YMt,"delta"=delta,"U"=U,"PCnum"=PCnum,kerneltype = "gaussian",threshold=threshold,location=info)
+  res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q,"K"=K,"bandwidth"=bandwidth,"YMt"=YMt,"delta"=delta,"U"=U,kerneltype = "gaussian",bandwidthtype=bandwidthtype,location=info)
   return(res)
-}else if(dim(info)[1]>=threshold){
-  bandwidthtype="Silverman"
-  bandwidth = bandwidth_select(expr, info,method=bandwidthtype)
-  print("Bandwidth selected!")
-  K=kernel_build(kernelpara=kerneltype, ED2=ED2,bandwidth) 
-  print("Kernel matrix built!")
-  YMt = t(YM)
-  eigen_res = eigs_sym(K, k=PCnum, which = "LM")
-  print("Eigen decomposition on kernel matrix finished!")
-  delta = eigen_res$values
-  U = eigen_res$vectors
-  print("Low rank approximation prepared!")
 
-  res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q,"K"=K,"bandwidth"=bandwidth,"YMt"=YMt,"delta"=delta,"U"=U,"PCnum"=PCnum,kerneltype = "gaussian",threshold=threshold,location=info)
-  return(res)
-}
+}else{
+    if(n>5000){
+        print("Eigen decomposition on kernel matrix!")
+        eigen_res = eigs_sym(K, k=20, which = "LM")
+        delta = eigen_res$values
+        U = eigen_res$vectors
+        print("Low rank approximation!")
+        res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q,"K"=K,"bandwidth"=bandwidth,"YMt"=YMt,"delta"=delta,"U"=U,kerneltype = "gaussian",bandwidthtype=bandwidthtype,location=info)
+    }else{
+        eigen_res = eigen(K)
+        delta_all = eigen_res$values
+        U_all = eigen_res$vectors
+        ind = which(cumsum(delta_all/length(delta_all))>0.95)[1]
+        print("Low rank approximation!")
+        delta = delta_all[1:ind]
+        U = U_all[,1:ind]
+        res<-list("YM"=YM, "ED"=ED, "ED2"=ED2,  "tr_YMY"=tr_YMY, "M"=M, "H"=H, "n"=n,"Y"=expr,"q"=q,"K"=K,"bandwidth"=bandwidth,"YMt"=YMt,"delta"=delta,"U"=U,kerneltype = "gaussian",bandwidthtype=bandwidthtype,location=info)
+    }
+ 
+    return(res)
+    }
 
 }
 
@@ -187,13 +198,13 @@ kernel_build = function(kernelpara="gaussian", ED2,beta){
 #' @description This function calculate -log likelihood value.
 #' @param param_ini: Input log(tau) value. Because we need tau to be positive, we calculate exp(log(tau)) inside of this function.
 #' @param dat_input: Object created in the data_prepare_func function.
+#' @param PCnum: Number of spatial PCs.
 #' @return A numeric value of -log likelihood.
 #' @export
-SpatialPCA_estimate = function(param_ini,dat_input){
+SpatialPCA_estimate = function(param_ini,dat_input,PCnum=PCnum){
    suppressMessages(require(RSpectra))
     set.seed(1234)
     param = param_ini
-    PCnum = dat_input$PCnum
     #print(param)
     tau=exp(param[1])
     k = dim(dat_input$Y)[1]
@@ -217,19 +228,15 @@ SpatialPCA_estimate = function(param_ini,dat_input){
     G_each = as.matrix(dat_input$YM%*% W_middle_inv %*% dat_input$YMt ) # m by m
 # det(\tau *K +I) = det(\tau^-1 *D^-1 + UtU)*det(\tau *D)
     # det_tauK_I = det(1/tau*diag(1/dat_input$delta)+ UtU) * det(tau*diag(dat_input$delta))
-    if(n<=dat_input$threshold){
-        det_tauK_I = 1/det(Q)
-    }else if(n>dat_input$threshold){
-        det_tauK_I = det(1/tau*diag(1/dat_input$delta)+ UtU) * det(tau*diag(dat_input$delta))
-    }
+    log_det_tauK_I = determinant(1/tau*diag(1/dat_input$delta)+ UtU, logarithm=TRUE)$modulus[1] + determinant(tau*diag(dat_input$delta), logarithm=TRUE)$modulus[1]
     sum_det=0
-    sum_det=sum_det+(0.5*log(det_tauK_I)+0.5*log(det(XtQX))  )*PCnum
+    sum_det=sum_det+(0.5*log_det_tauK_I+0.5*log(det(XtQX))  )*PCnum
     W_est_here = eigs_sym(G_each, k=PCnum, which = "LM")$vectors
     -(-sum_det -(k*(n-q))/2*log(dat_input$tr_YMY+F_funct_sameG(W_est_here,G_each)))
 }
 
 
-
+    
 
 
 
@@ -238,6 +245,7 @@ SpatialPCA_estimate = function(param_ini,dat_input){
 #' @param maxiter: Maximum iteration number.
 #' @param log_tau_ini: Initial value of log(tau). Because we need tau to be positive, we calculate exp(log(tau)) during iterations.
 #' @param dat_input: Object created in the data_prepare_func function.
+#' @param PCnum: Number of spatial PCs.
 #' @return A list of objects
 #' \item{par}{estimated log(tau) value}
 #' \item{value}{-log likelihood corresponding to the estimated log(tau) value}
@@ -246,13 +254,12 @@ SpatialPCA_estimate = function(param_ini,dat_input){
 #' \item{message}{A character string giving any additional information returned by the optimizer}
 #' \item{T_m_trend}{Total running time for this function}
 #' @export
-SpatialPCA_estimate_parameter = function(maxiter=300,log_tau_ini=0,dat_input){
+SpatialPCA_estimate_parameter = function(maxiter=300,log_tau_ini=0,dat_input,PCnum=PCnum){
   suppressMessages(require(RSpectra))
   set.seed(1234)
   param_ini=log_tau_ini
-  PCnum = dat_input$PCnum
   start_time <- Sys.time()
-  m_trend=try(optim(param_ini, SpatialPCA_estimate,dat_input=dat_input,control = list(maxit = maxiter), lower = -3, upper = 3,method="Brent"),silent=T)
+  m_trend=try(optim(param_ini, SpatialPCA_estimate,dat_input=dat_input,PCnum=PCnum,control = list(maxit = maxiter), lower = -10, upper = 10,method="Brent"),silent=T)
   end_time <- Sys.time()
   T_m_trend = end_time - start_time
   T_m_trend
@@ -269,14 +276,14 @@ return(m_trend)
 #' @description This function estimates loading matrix W in SpatialPCA.
 #' @param parameter: The estimated log(tau) value.
 #' @param dat_input: The input data object.
+#' @param PCnum: Number of spatial PCs.
 #' @return A list of objects.
 #' \item{W}{The estimated loading matrix W.}
 #' \item{sigma2_0}{The estimated sigma^2_0 value.}
 #' @export
-SpatialPCA_estimate_W = function(parameter, dat_input){
-       param = parameter
+SpatialPCA_estimate_W = function(parameter, dat_input,PCnum=PCnum){
+    param = parameter
     tau=exp(param[1])
-    PCnum = dat_input$PCnum
     k = dim(dat_input$Y)[1]
     n = dim(dat_input$Y)[2]
     q=dat_input$q
@@ -307,12 +314,14 @@ SpatialPCA_estimate_W = function(parameter, dat_input){
 #' @param parameter: The estimated log(tau) value.
 #' @param dat_input: The input data object.
 #' @param estW: The output from function SpatialPCA_estimate_W.
+#' @param PCnum: Number of spatial PCs.
+#' @param fast: A logic value, TRUE if one wants to use approximation to quickly calculate the spatial PCs, otherwise select FALSE. It is recommended to set fast=TRUE when the sample size is large.
 #' @return A list of objects.
 #' \item{Z_hat}{The estimated spatial PC matrix Z matrix.} 
 #' \item{YM_mat_inv}{YM_mat_inv matrix, will be used in high-resolution prediction.} 
 #' @export
-SpatialPCA_estimate_Z = function(parameter,dat_input,estW){
-    PCnum = dat_input$PCnum
+SpatialPCA_estimate_Z = function(parameter,dat_input,estW,PCnum,fast=FALSE){
+
     n = dim(dat_input$Y)[2]
     Z_hat = matrix(0, PCnum, n)
     tau = exp(parameter[1])
@@ -320,6 +329,7 @@ SpatialPCA_estimate_Z = function(parameter,dat_input,estW){
     sigma_2_0_here = estW[[2]]
     sigma_2_0_here = as.numeric(sigma_2_0_here)
 
+if(fast==FALSE){
     mat_inv = solve( diag(n)+tau *  dat_input$K %*% dat_input$M  )
     YM_mat_inv = dat_input$YM %*% mat_inv
     for (i_d in 1:PCnum) {
@@ -328,8 +338,41 @@ SpatialPCA_estimate_Z = function(parameter,dat_input,estW){
         middle_part = as.matrix(middle_part)
         Z_hat[i_d, ] = tau * middle_part %*%   dat_input$K
     }
+}else if (fast==TRUE){
+    suppressMessages(require(RSpectra))
+
+    if(n>5000){
+        fast_eigen_num = ceiling(n*0.1)
+        EIGEN = eigs_sym(dat_input$K, k=fast_eigen_num, which = "LM")
+        UtM = t(EIGEN$vectors) %*% dat_input$M 
+        middle = 1/tau * diag(1/EIGEN$values) + UtM %*% EIGEN$vectors  # d by d 
+        middle_inv = solve(middle)
+        Zmiddle_approx = diag(n) -  EIGEN$vectors %*% middle_inv %*% UtM
+        YM_mat_inv = dat_input$YM%*%Zmiddle_approx
+        for(i_d in 1:PCnum){
+            print(i_d)
+            middle_part=t(W_hat[,i_d])%*%YM_mat_inv
+            middle_part = as.matrix(middle_part)
+            Z_hat[i_d,]=tau*(middle_part%*%dat_input$K)
+        }
+    }else{
+        UtM = t(dat_input$U) %*% dat_input$M 
+        middle = 1/tau * diag(1/dat_input$delta) + UtM %*% dat_input$U  # d by d 
+        middle_inv = solve(middle)
+        Zmiddle_approx = diag(n) -  dat_input$U %*% middle_inv %*% UtM
+        YM_mat_inv = dat_input$YM%*%Zmiddle_approx
+        for(i_d in 1:PCnum){
+            print(i_d)
+            middle_part=t(W_hat[,i_d])%*%YM_mat_inv
+            middle_part = as.matrix(middle_part)
+            Z_hat[i_d,]=tau*(middle_part%*%dat_input$K)
+        }
+    }
+
+}
     return(list(Z_hat = Z_hat, YM_mat_inv =  1/sigma_2_0_here*YM_mat_inv))
 }
+
 
 
 #' @export
@@ -345,14 +388,14 @@ F_funct_sameG = function(X,G){ # G is a matrix
 #' @title High-resolution spatial map construction.
 #' @description This function predicts spatial PC values at new spatial locations.
 #' @param dat_input: The input data object.
+#' @param PCnum: Number of spatial PCs.
 #' @return A list of objects.
 #' \item{Z_star}{Predicted Z matrix on new locations.} 
 #' \item{Location_star}{Coordinates of new locations.} 
 #' @export
-high_resolution = function(dat_input){
+high_resolution = function(dat_input,PCnum){
 info = dat_input$location
 K = dat_input$K
-PCnum = dat_input$PCnum
 kernelpara = dat_input$kerneltype
 ED = dat_input$ED
 est_log_tau = dat_input$Est_para$par
