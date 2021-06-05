@@ -32,6 +32,7 @@ install_github("shangll123/SpatialPCA")
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(SpatialPCA)
+library(RSpectra)
 library(ggplot2)
 library(bluster)
 library(ggpubr)
@@ -44,22 +45,23 @@ Load in processed data: a normalized gene expression matrix (m gene by n locatio
 ```{r}
 expr=readRDS(system.file("extdata", "ST_tumor_expr.RData", package = "SpatialPCA"))
 info=readRDS(system.file("extdata", "ST_tumor_info.RData", package = "SpatialPCA"))
-ls()
 dim(expr)
 dim(info)
 ```
 
-We first prepare data for SpatialPCA functions.
+Here we select the gaussian kernel, and use the "SJ" method to calculate bandwidth in this small sample size data (n=607). For other large sample data (e.g. n>5,000) we recommend using the "Silverman" method. 
 ```{r}
-# We select number of spatial PCs to be 20, and use Gaussian kernel in this data.
-dat = data_prepare_func(expr, info, PCnum = 20, kerneltype = "gaussian")
+# In the below function we can select fast=TRUE to use accelerate the calculation through low-rank approximation.
+dat = data_prepare_func(expr, info,  kerneltype = "gaussian",bandwidthtype="SJ",fast = FALSE)
 ```
 
 We run SpatialPCA functions to extract spatial PCs:
 ```{r}
-Est_para = SpatialPCA_estimate_parameter(dat_input=dat)
-Est_W = SpatialPCA_estimate_W(Est_para$par, dat)
-Est_Z = SpatialPCA_estimate_Z(Est_para$par,dat,Est_W)
+Est_para = SpatialPCA_estimate_parameter(dat_input=dat,PCnum=20)
+Est_W = SpatialPCA_estimate_W(parameter=Est_para$par, dat_input=dat,PCnum=20)
+# In the below function we can also select fast=TRUE to use accelerate the calculation through low-rank approximation.
+# It is recommended to select fast=TRUE when sample size is large.
+Est_Z = SpatialPCA_estimate_Z(parameter=Est_para$par,dat_input=dat,Est_W,PCnum=20,fast=FALSE)
 dat$Est_para = Est_para
 dat$Est_W = Est_W
 dat$Est_Z = Est_Z
@@ -112,7 +114,8 @@ meta_data$SpatialPCA_Walktrap = walktrap_cluster_SpatialPCA$cluster_label[[1]]
 sim<- SingleCellExperiment(assays = expr)
 reducedDims(sim) <- SimpleList(DRM = t(dat$Z_spatial))
 colData(sim)$Walktrap <- factor(meta_data$SpatialPCA_Walktrap)    
-sim  <-slingshot(sim, clusterLabels = 'Walktrap', reducedDim = 'DRM',start.clus="5" ) # in this data we set tumor region as start cluster, one can change to their preferred start region 
+sim  <-slingshot(sim, clusterLabels = 'Walktrap', reducedDim = 'DRM',start.clus="5" ) 
+# in this data we set tumor region as start cluster, one can change to their preferred start region 
 summary(sim@colData@listData)
 ```
 
@@ -134,7 +137,7 @@ print(ggarrange( p_traj1[[4]],p_traj2[[4]],p_traj3[[4]],p_traj1[[1]],p_traj2[[1]
 ### 4. High-resolution spatial map reconstruction.
 In SpatialPCA, the correlation among spatial PCs allows us to construct a refined spatial map with a resolution much higher than that of the original study.
 ```{r fig.height=5, fig.width=5}
-Z_high = high_resolution(dat)
+Z_high = high_resolution(dat,PCnum=20)
 walktrap_SpatialPCA_highresolution = walktrap_clustering(knearest = 84, Z_high$Z_star)
 cbp_high = c(  "plum1", "palegreen4","mediumaquamarine",  "dodgerblue", "chocolate1", "#F0E442","lightblue2")
 loc1=unlist(Z_high$Location_star[,1])
@@ -150,7 +153,8 @@ We then perform trajectory inference on the high-resolution spatial map.
 simhigh = SingleCellExperiment(Z_high$Z_star)
 reducedDims(simhigh) = SimpleList(DRM = t(Z_high$Z_star))
 colData(simhigh)$Walktrap = factor(Z_high_clusters)    
-simhigh = slingshot(simhigh, clusterLabels = 'Walktrap', reducedDim = 'DRM',start.clus="5") # still set tumor region as start cluster in slingshot
+simhigh = slingshot(simhigh, clusterLabels = 'Walktrap', reducedDim = 'DRM',start.clus="5") 
+# still set tumor region as start cluster in slingshot
 summary(simhigh@colData@listData)
 ```
 
