@@ -48,6 +48,8 @@ data_prepare_func = function(expr,info,covariate=NA,  kerneltype = "gaussian",ba
     stop("ERROR - expression samples size doesn't agree with the number of locations")
   }
 
+suppressMessages(require(RSpectra))
+
 expr=scale_expr(expr)
 X = scale(info)
 n = dim(X)[1]
@@ -90,7 +92,7 @@ print("Kernel matrix!")
   bandwidth = bandwidth_select(expr, info,method=bandwidthtype)
   K=kernel_build(kernelpara=kerneltype, ED2=ED2,bandwidth) 
   
-suppressMessages(require(RSpectra))
+
 
 if(fast==FALSE){
   print("Eigen decomposition on kernel matrix!")
@@ -282,6 +284,8 @@ return(m_trend)
 #' \item{sigma2_0}{The estimated sigma^2_0 value.}
 #' @export
 SpatialPCA_estimate_W = function(parameter, dat_input,PCnum=PCnum){
+    suppressMessages(require(RSpectra))
+
     param = parameter
     tau=exp(param[1])
     k = dim(dat_input$Y)[1]
@@ -316,11 +320,15 @@ SpatialPCA_estimate_W = function(parameter, dat_input,PCnum=PCnum){
 #' @param estW: The output from function SpatialPCA_estimate_W.
 #' @param PCnum: Number of spatial PCs.
 #' @param fast: A logic value, TRUE if one wants to use approximation to quickly calculate the spatial PCs, otherwise select FALSE. It is recommended to set fast=TRUE when the sample size is large.
+#' @param eigenvecnum: An integer, the number of top eigenvectors and eigenvalues to be used in low-rank approximation in the eigen decomposition step for kernel matrix. 
+#' The default is NA, if specified, it is recommended that these top eigen values explain 90% of the variance.
 #' @return A list of objects.
 #' \item{Z_hat}{The estimated spatial PC matrix Z matrix.} 
-#' \item{YM_mat_inv}{YM_mat_inv matrix, will be used in high-resolution prediction.} 
+#' \item{YM_mat_inv}{A matrix to be used in high-resolution prediction.} 
 #' @export
-SpatialPCA_estimate_Z = function(parameter,dat_input,estW,PCnum,fast=FALSE){
+SpatialPCA_estimate_Z = function(parameter,dat_input,estW,PCnum,fast=FALSE,eigenvecnum=NA){
+
+suppressMessages(require(RSpectra))
 
     n = dim(dat_input$Y)[2]
     Z_hat = matrix(0, PCnum, n)
@@ -330,7 +338,7 @@ SpatialPCA_estimate_Z = function(parameter,dat_input,estW,PCnum,fast=FALSE){
     sigma_2_0_here = as.numeric(sigma_2_0_here)
 
 if(fast==FALSE){
-    mat_inv = solve( diag(n)+tau *  dat_input$K %*% dat_input$M  )
+    mat_inv = solve( diag(n)+tau *  dat_input$K %*% dat_input$M  ) # from right to left of formula
     YM_mat_inv = dat_input$YM %*% mat_inv
     for (i_d in 1:PCnum) {
         print(i_d)
@@ -338,11 +346,28 @@ if(fast==FALSE){
         middle_part = as.matrix(middle_part)
         Z_hat[i_d, ] = tau * middle_part %*%   dat_input$K
     }
-}else if (fast==TRUE){
-    suppressMessages(require(RSpectra))
-
-    if(n>5000){
+}else if(fast==TRUE){
+    
+    if(is.na(eigenvecnum)==FALSE){
+        fast_eigen_num = eigenvecnum
+        print(paste0("Low rank approximation!"))
+        #print(fast_eigen_num)
+        EIGEN = eigs_sym(dat_input$K, k=fast_eigen_num, which = "LM")
+        UtM = t(EIGEN$vectors) %*% dat_input$M 
+        middle = 1/tau * diag(1/EIGEN$values) + UtM %*% EIGEN$vectors  # d by d 
+        middle_inv = solve(middle)
+        Zmiddle_approx = diag(n) -  EIGEN$vectors %*% middle_inv %*% UtM
+        YM_mat_inv = dat_input$YM%*%Zmiddle_approx
+        for(i_d in 1:PCnum){
+            print(i_d)
+            middle_part=t(W_hat[,i_d])%*%YM_mat_inv
+            middle_part = as.matrix(middle_part)
+            Z_hat[i_d,]=tau*(middle_part%*%dat_input$K)
+        }
+    }else if(n>5000){
         fast_eigen_num = ceiling(n*0.1)
+        print(paste0("Low rank approximation!"))
+        #print(fast_eigen_num)
         EIGEN = eigs_sym(dat_input$K, k=fast_eigen_num, which = "LM")
         UtM = t(EIGEN$vectors) %*% dat_input$M 
         middle = 1/tau * diag(1/EIGEN$values) + UtM %*% EIGEN$vectors  # d by d 
