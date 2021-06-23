@@ -26,6 +26,7 @@ The example dataset provided ([SpatialPCA tutorial](http://lulushang.org/Spatial
 
 ## Operating systems (version 1.0.0 SpatialPCA) tested on:
 macOS Catalina 10.15.7
+
 Ubuntu 18.04.5 LTS (Bionic Beaver)
 
 ## License
