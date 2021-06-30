@@ -245,16 +245,16 @@ SpatialPCA_estimate = function(param_ini,dat_input,PCnum=PCnum){
     n = dim(dat_input$Y)[2]
     q=dat_input$q
 
-    tauD_UtU_inv = solve(tau*diag(dat_input$delta) + dat_input$UtU)
+    tauD_UtU_inv = solve(tau*diag(dat_input$delta) + dat_input$UtU, tol = 1e-20)
     YMU_tauD_UtU_inv_Ut = dat_input$YMU %*% tauD_UtU_inv %*% dat_input$Ut
     YMU_tauD_UtU_inv_UtX = YMU_tauD_UtU_inv_Ut %*% dat_input$H
     XtU_inv_UtX = dat_input$XtU %*% tauD_UtU_inv %*% dat_input$UtX
     left = dat_input$YMX - YMU_tauD_UtU_inv_UtX
     right = t(left)
-    middle = solve(-XtU_inv_UtX)
+    middle = solve(-XtU_inv_UtX, tol = 1e-20)
     G_each = dat_input$YMMYt - YMU_tauD_UtU_inv_Ut %*% dat_input$MYt - left %*% middle %*% right
     log_det_tauK_I = determinant(1/tau*diag(1/dat_input$delta)+ dat_input$UtU, logarithm=TRUE)$modulus[1] + determinant(tau*diag(dat_input$delta), logarithm=TRUE)$modulus[1]
-    Xt_invmiddle_X = dat_input$XtX - dat_input$XtU %*% solve(dat_input$UtU + 1/tau *diag( 1/dat_input$delta)) %*% dat_input$UtX
+    Xt_invmiddle_X = dat_input$XtX - dat_input$XtU %*% solve(dat_input$UtU + 1/tau *diag( 1/dat_input$delta) , tol = 1e-20) %*% dat_input$UtX
     log_det_Xt_inv_X = determinant(Xt_invmiddle_X, logarithm=TRUE)$modulus[1]
 
     sum_det=0
@@ -317,13 +317,13 @@ SpatialPCA_estimate_W = function(parameter, dat_input,PCnum=PCnum){
     n = dim(dat_input$Y)[2]
     q=dat_input$q
     
-    tauD_UtU_inv = solve(tau*diag(dat_input$delta) + dat_input$UtU)
+    tauD_UtU_inv = solve(tau*diag(dat_input$delta) + dat_input$UtU, tol = 1e-20)
     YMU_tauD_UtU_inv_Ut = dat_input$YMU %*% tauD_UtU_inv %*% dat_input$Ut
     YMU_tauD_UtU_inv_UtX = YMU_tauD_UtU_inv_Ut %*% dat_input$H
     XtU_inv_UtX = dat_input$XtU %*% tauD_UtU_inv %*% dat_input$UtX
     left = dat_input$YMX - YMU_tauD_UtU_inv_UtX
     right = t(left)
-    middle = solve(-XtU_inv_UtX)
+    middle = solve(-XtU_inv_UtX, tol = 1e-20)
     G_each = dat_input$YMMYt - YMU_tauD_UtU_inv_Ut %*% dat_input$MYt - left %*% middle %*% right
     W_est_here = eigs_sym(G_each, k=PCnum, which = "LM")$vectors
 
@@ -400,7 +400,7 @@ if(fast==FALSE){
     UtM = Ut %*% dat_input$M
     UtMK = UtM %*% dat_input$K
     UtMU = UtM %*% U
-    middle_inv = solve(1/tau * diag(1/delta) + UtMU)
+    middle_inv = solve(1/tau * diag(1/delta) + UtMU, tol = 1e-20)
     Z_hat = tau*WtYMK - tau*WtYMU %*% middle_inv %*% UtMK
 
     return(list(Z_hat = Z_hat, U =  U, delta = delta))
