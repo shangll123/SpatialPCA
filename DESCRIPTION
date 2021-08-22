@@ -1,0 +1,16 @@
+Package: SpatialPCA
+Title: Spatially Aware Dimension Reduction for Spatial Transcriptomics
+Version: 1.0.1
+Date: 2021-07-31
+Author: Lulu Shang
+Maintainer: Lulu Shang <shanglu@umich.edu>
+Description: SpatialPCA is a spatially aware dimension reduction method that explicitly accounts for the spatial correlation across tissue locations. 
+License: GPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports: RSpectra
+Suggests: rmarkdown, knitr
+VignetteBuilder: knitr
+NeedsCompilation: no
+Packaged: 2021-08-14 21:23:29 UTC; shanglu
