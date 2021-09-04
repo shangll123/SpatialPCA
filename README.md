@@ -23,8 +23,7 @@ R packages: ggplot2, RSpectra, bluster, slingshot.
 ## Installation time: 
 Less than one minute, after installing dependent packages. 
 
-## Runtime: 
-The example dataset provided ([SpatialPCA tutorial](http://lulushang.org/SpatialPCA.html)) can be run in less than 2 minutes on a normal desktop computer. The extraction of spatial PCs takes approximately 27 seconds on a osmFISH dataset (33 genes and 5,275 locations) on the server using a single thread on an Intel(R) Xeon(R) Gold 6138 CPU @ 2.00GHz processor. The extraction of spatial PCs takes approximately 68min on a slide-seq dataset (787 genes and 20,982 locations) on the server using a single thread on the same processor.
+## updating tutorial... 
 
 ## Operating systems (version 1.0.0 SpatialPCA) tested on:
 macOS Catalina 10.15.7
