@@ -5,9 +5,7 @@ Welcome to SpatialPCA, a spatially aware dimension reduction method that aims to
 
 <img align="top" src="https://raw.githubusercontent.com/shangll123/shangll123.github.io/master/images/SpatialPCA_Figure1.png" alt="drawing" width="600"/>
 
-Detailed tutorial could be found here: [SpatialPCA tutorial](http://lulushang.org/SpatialPCA.html)
 
-All analysis codes could be found here: [Analysis codes](http://lulushang.org/docs/Projects/SpatialPCA)
 
 ## Install the Package
 You can install the current version of SpatialPCA from GitHub with:
