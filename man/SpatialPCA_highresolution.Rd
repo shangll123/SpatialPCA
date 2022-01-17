@@ -4,13 +4,17 @@
 \alias{SpatialPCA_highresolution}
 \title{High-resolution spatial map construction.}
 \usage{
-SpatialPCA_highresolution(object)
+SpatialPCA_highresolution(object, newlocation = NULL)
 }
 \arguments{
-\item{object:}{SpatialPCA object.}
+\item{object}{SpatialPCA object.}
+
+\item{newlocation}{A n* by d location matrix, n* is number of new locations, d is dimension of locations.
+Users can optionally provide new locations at the original location scale.
+If newlocation is not provided, aka newlocation=NULL, we would jitter each existing location to surrounding 4 locations as new locations.}
 }
 \value{
-Returns SpatialPCA object with estimated Spatial PCs.
+Returns SpatialPCA object with estimated Spatial PCs on new locations.
 }
 \description{
 High-resolution spatial map construction.

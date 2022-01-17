@@ -1,41 +1,43 @@
 ########################################################################################################################
 # Package: SpatialPCA
-# Version: 1.0.1
-# Date   : 2021-07-27
-# Title : Spatially Aware Dimension Reduction for Spatial Transcriptomics 
+# Version: 1.1.0
+# Date   : 2021-10-27
+# Title : Spatially Aware Dimension Reduction for Spatial Transcriptomics
 # Authors: L. Shang and X. Zhou
-# Contacts: shanglu@umich.edu 
+# Contacts: shanglu@umich.edu
 #          University of Michigan, Department of Biostatistics
 ####################################################################################################
 
 
-#' Calculating loading matrix.
-#' 
-#' @param object: SpatialPCA object.
-#' @param maxiter: Maximum iteration number. Default is 300.
-#' @param initial_tau: Initial value of tau. Default is 1. Because we need tau to be positive, we calculate exp(log(tau)) during iterations.
-#' @param fast: 
-#' @param eigenvecnum: An integer, the number of top eigenvectors and eigenvalues to be used in low-rank approximation in the eigen decomposition step for kernel matrix. 
-#' The default is NULL, if specified, it is recommended to use eigenvecnum=20 when sample size is large (e.g. >5,000). When sample size is small, eigenvecnum is suggested to explain at least 90% variance. 
-#' @param SpatialPCnum: Number of spatial PCs.
+#' Calculate loading matrix.
+#'
+#' @param object SpatialPCA object.
+#' @param maxiter Maximum iteration number. Default is 300.
+#' @param initial_tau Initial value of tau. Default is 1. Because we need tau to be positive, we calculate exp(log(tau)) during iterations.
+#' @param fast Select "TRUE" if the user wants to use low-rank approximation on the kernel matrix to accelerate the algorithm, otherwise select "FALSE".
+#' @param eigenvecnum When fast=TRUE, eigenvecnum is the number of top eigenvectors and eigenvalues to be used in low-rank approximation in the eigen decomposition step for kernel matrix.
+#' The default is NULL, if specified, it is recommended to use eigenvecnum=20 when sample size is large (e.g. >5,000). When sample size is small, eigenvecnum is suggested to explain at least 90% variance.
+#' @param SpatialPCnum Number of spatial PCs.
 #' @return Returns SpatialPCA object with estimated loading matrix W.
+#'
+#' @import RSpectra
+#'
 #' @export
 #'
 SpatialPCA_EstimateLoading = function(object, maxiter=300,initial_tau=1,fast=FALSE,eigenvecnum=NULL,SpatialPCnum=20){
-    
-    suppressMessages(require(RSpectra))
-    set.seed(1234)
-    param_ini=log(initial_tau)
-  object@SpatialPCnum = SpatialPCnum
-  object@fast = fast
-  # object@params$expr=scale_expr(object@normalized_expr)
-  object@params$X = scale(object@location)
-  object@params$n = dim(object@params$X)[1]
-  object@params$p=dim(object@params$X)[2] 
+
+      # suppressMessages(require(RSpectra))
+      set.seed(1234)
+      param_ini=log(initial_tau)
+      object@SpatialPCnum = SpatialPCnum
+      object@fast = fast
+      object@params$X = scale(object@location)
+      object@params$n = dim(object@params$X)[1]
+      object@params$p=dim(object@params$X)[2]
 
   if(is.null(object@covariate)){
       object@params$H = matrix(1, dim(object@params$X)[1],1)
-      HH_inv=solve(t(object@params$H)%*%object@params$H) 
+      HH_inv=solve(t(object@params$H)%*%object@params$H)
       HH = object@params$H%*%HH_inv%*%t(object@params$H)
       object@params$M=diag(object@params$n)-HH
       # Y=expr
@@ -43,11 +45,11 @@ SpatialPCA_EstimateLoading = function(object, maxiter=300,initial_tau=1,fast=FAL
       object@params$YM = object@params$expr%*%object@params$M
       object@params$q=1
   }else{
-      object@params$q = dim(object@covariate)[1]+1
+      object@params$q = dim(object@covariate)[2]+1
       object@params$H = matrix(0, object@params$n,object@params$q)
       object@params$H[,1]=1
-      object@params$H[,2:q] = object@covariate
-      HH_inv=solve(t(object@params$H)%*%object@params$H) 
+      object@params$H[,2:object@params$q] = object@covariate
+      HH_inv=solve(t(object@params$H)%*%object@params$H)
       HH=object@params$H%*%HH_inv%*%t(object@params$H)
       object@params$M=diag(object@params$n)-HH
       #Y=expr
@@ -106,7 +108,7 @@ SpatialPCA_EstimateLoading = function(object, maxiter=300,initial_tau=1,fast=FAL
         }
     }
 
-    #print("1")
+
     object@params$MYt = object@params$M %*% t(object@params$expr)
     object@params$YMMYt = object@params$YM %*% object@params$MYt
     object@params$YMU = object@params$YM %*% object@params$U
@@ -118,8 +120,8 @@ SpatialPCA_EstimateLoading = function(object, maxiter=300,initial_tau=1,fast=FAL
     object@params$UtU = object@params$Ut %*% object@params$U
     object@params$XtX = object@params$Xt %*% object@params$H
     object@params$SpatialPCnum = SpatialPCnum
-    
-    #print("2")
+
+
     optim_result =try(optim(param_ini, SpatialPCA_estimate_parameter,params=object@params,control = list(maxit = maxiter), lower = -10, upper = 10,method="Brent"),silent=T)
 
     object@tau = exp(optim_result$par)
@@ -152,29 +154,21 @@ SpatialPCA_EstimateLoading = function(object, maxiter=300,initial_tau=1,fast=FAL
 }
 
 
-
+#' @import RSpectra
 SpatialPCA_estimate_parameter = function(param_ini, params){
-    suppressMessages(require(RSpectra))
+    # suppressMessages(require(RSpectra))
     set.seed(1234)
-    #print("1") debugging...ah
     tau=exp(param_ini[1])
     k = dim(params$expr)[1]
     n = dim(params$expr)[2]
     q=params$q
-    #print("2")
     PCnum=params$SpatialPCnum
-    #print("2-1")
     tauD_UtU_inv = solve(tau*diag(params$delta) + params$UtU, tol = 1e-40)
-    #print("2-2")
     YMU_tauD_UtU_inv_Ut = params$YMU %*% tauD_UtU_inv %*% params$Ut
-
-    #print("3")
     YMU_tauD_UtU_inv_UtX = YMU_tauD_UtU_inv_Ut %*% params$H
     XtU_inv_UtX = params$XtU %*% tauD_UtU_inv %*% params$UtX
     left = params$YMX - YMU_tauD_UtU_inv_UtX
     right = t(left)
-
-    #print("4")
     middle = solve(-XtU_inv_UtX, tol = 1e-40)
     G_each = params$YMMYt - YMU_tauD_UtU_inv_Ut %*% params$MYt - left %*% middle %*% right
     log_det_tauK_I = determinant(1/tau*diag(1/params$delta)+ params$UtU, logarithm=TRUE)$modulus[1] + determinant(tau*diag(params$delta), logarithm=TRUE)$modulus[1]

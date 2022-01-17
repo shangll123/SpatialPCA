@@ -7,12 +7,13 @@
 SpatialPCA_SpatialPCs(object, fast = FALSE, eigenvecnum = NULL)
 }
 \arguments{
-\item{object:}{SpatialPCA object.}
+\item{object}{SpatialPCA object.}
 
-\item{fast:}{A logic value, TRUE if one wants to use approximation to quickly calculate the spatial PCs, otherwise select FALSE. It is recommended to set fast=TRUE when the sample size is large.}
+\item{fast}{Select fast=TRUE if the user wants to use low-rank approximation on the kernel matrix to calculate the spatial PCs, otherwise select FALSE.}
 
-\item{eigenvecnum:}{An integer, the number of top eigenvectors and eigenvalues to be used in low-rank approximation in the eigen decomposition step for kernel matrix.
-The default is NULL, if specified, it is recommended that these top eigen values explain 90\% of the variance. In estimating Z, we need larger number of eigenvectors in kernel matrix for accurate estimation.}
+\item{eigenvecnum}{When fast=TRUE, eigenvecnum is the number of top eigenvectors and eigenvalues to be used in low-rank approximation in the eigen decomposition step for kernel matrix.
+The default is NULL, if specified, it is recommended that these top eigen values explain >=90\% of the variance.
+In estimating spatial PCs, we need larger number of eigenvectors in kernel matrix for more accurate estimation.}
 }
 \value{
 Returns SpatialPCA object with estimated Spatial PCs.

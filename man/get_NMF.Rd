@@ -4,10 +4,12 @@
 \alias{get_NMF}
 \title{Obtain NMF low dimensional components for dimension reduction methods comparison.}
 \usage{
-get_NMF(object)
+get_NMF(count, PCnum)
 }
 \arguments{
-\item{object:}{SpatialPCA object.}
+\item{count}{Count expression g by n matrix. g is gene number, n is sample size.}
+
+\item{PCnum}{Number of PCs.}
 }
 \value{
 A d by n matrix of low dimensional components from NMF. d is number of low dimensional components, which is same as number of Spatial PCs in SpatialPCA. n is sample size.

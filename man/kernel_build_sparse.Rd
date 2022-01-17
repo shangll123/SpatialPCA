@@ -4,27 +4,21 @@
 \alias{kernel_build_sparse}
 \title{Build sparse kernel matrix.}
 \usage{
-kernel_build_sparse(
-  kerneltype = object@kerneltype,
-  location = location_normalized,
-  bandwidth = object@bandwidth,
-  tol = object@sparseKernel_tol,
-  ncores = object@sparseKernel_ncore
-)
+kernel_build_sparse(kerneltype, location, bandwidth, tol, ncores)
 }
 \arguments{
-\item{kerneltype:}{The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel.}
+\item{kerneltype}{The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel.}
 
-\item{location:}{Cell/spot corrdinates to compute the kernel matrix}
+\item{location}{A n by d matrix of cell/spot location coordinates.}
 
-\item{bandwidth:}{A numeric value of bandwidth.}
+\item{bandwidth}{A numeric value of bandwidth.}
 
-\item{tol:}{A numeric value of cut-off value when building sparse kernel matrix.}
+\item{tol}{A numeric value of cut-off value when building sparse kernel matrix.}
 
-\item{ncores:}{A integer value of number of CPU cores to use when building sparse kernel matrix.}
+\item{ncores}{A integer value of number of CPU cores to use when building sparse kernel matrix.}
 }
 \value{
-The sparse kernel matrix for spatial relationship between locations
+The sparse kernel matrix for spatial relationship between locations.
 }
 \description{
 This function calculates kernel matrix.

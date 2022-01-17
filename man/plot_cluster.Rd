@@ -2,32 +2,29 @@
 % Please edit documentation in R/SpatialPCA_utilties.R
 \name{plot_cluster}
 \alias{plot_cluster}
-\title{Obtain cluster labels visualized on locations.}
+\title{Visualize cluster labels on locations.}
 \usage{
 plot_cluster(
-  loc_x,
-  loc_y,
-  clusterlabel_in,
+  location,
+  clusterlabel,
   pointsize = 3,
-  text_size = 15,
+  textsize = 15,
   title_in,
   color_in
 )
 }
 \arguments{
-\item{loc_x:}{A vector of x coordiantes.}
+\item{location}{A n by k matrix of spot locations.}
 
-\item{loc_y:}{A vector of y coordinates.}
+\item{clusterlabel}{A vector of cluster labels for spots.}
 
-\item{clusterlabel_in:}{A vector of integers, the cluster labels for each cell.}
+\item{pointsize}{An integer, the point size of each spot.}
 
-\item{pointsize:}{An integer, the point size of each cell.}
+\item{textsize}{An integer, the text size in the legend.}
 
-\item{textsize:}{An integer, the text size in the legend.}
+\item{title_in}{A character string, the title you want to display at the top of the figure.}
 
-\item{title_in:}{A character string, the title you want to display at the top of the figure.}
-
-\item{color_in:}{A vector of colors for each cluster.}
+\item{color_in}{A vector of colors for each cluster.}
 }
 \value{
 A ggplot object.

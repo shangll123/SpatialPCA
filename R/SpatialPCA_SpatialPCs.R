@@ -1,7 +1,7 @@
 ########################################################################################################################
 # Package: SpatialPCA
-# Version: 1.0.1
-# Date   : 2021-07-27
+# Version: 1.1.0
+# Date   : 2021-10-27
 # Title : Spatially Aware Dimension Reduction for Spatial Transcriptomics 
 # Authors: L. Shang and X. Zhou
 # Contacts: shanglu@umich.edu 
@@ -10,15 +10,19 @@
 
 
 #' Calculating Spatial PCs (latent factor matrix Z).
-#' @param object: SpatialPCA object.
-#' @param fast: A logic value, TRUE if one wants to use approximation to quickly calculate the spatial PCs, otherwise select FALSE. It is recommended to set fast=TRUE when the sample size is large.
-#' @param eigenvecnum: An integer, the number of top eigenvectors and eigenvalues to be used in low-rank approximation in the eigen decomposition step for kernel matrix. 
-#' The default is NULL, if specified, it is recommended that these top eigen values explain 90% of the variance. In estimating Z, we need larger number of eigenvectors in kernel matrix for accurate estimation.
+#' @param object SpatialPCA object.
+#' @param fast Select fast=TRUE if the user wants to use low-rank approximation on the kernel matrix to calculate the spatial PCs, otherwise select FALSE. 
+#' @param eigenvecnum When fast=TRUE, eigenvecnum is the number of top eigenvectors and eigenvalues to be used in low-rank approximation in the eigen decomposition step for kernel matrix. 
+#' The default is NULL, if specified, it is recommended that these top eigen values explain >=90% of the variance. 
+#' In estimating spatial PCs, we need larger number of eigenvectors in kernel matrix for more accurate estimation.
 #' @return Returns SpatialPCA object with estimated Spatial PCs.
+#' 
+#' @import RSpectra
+#' 
 #' @export
 SpatialPCA_SpatialPCs= function(object,fast=FALSE,eigenvecnum=NULL){
 
-	suppressMessages(require(RSpectra))
+	# suppressMessages(require(RSpectra))
 
     n = object@params$n
     PCnum = object@SpatialPCnum
@@ -68,8 +72,6 @@ if(fast==FALSE){
     
     object@SpatialPCs = tau*WtYMK - tau*WtYMU %*% middle_inv %*% UtMK
 
-    #object@params$U=U
-    #object@SpatialPCs = Z_hat
     rm(W_hat_t)
     rm(WtYM)
     rm(WtYMK)

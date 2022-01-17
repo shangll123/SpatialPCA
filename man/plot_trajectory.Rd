@@ -2,11 +2,11 @@
 % Please edit documentation in R/SpatialPCA_utilties.R
 \name{plot_trajectory}
 \alias{plot_trajectory}
-\title{Obtain pseudotime visualized on locations.}
+\title{Visualize pseudotimes on locations.}
 \usage{
 plot_trajectory(
-  pseudotime_use,
-  info,
+  pseudotime,
+  location,
   clusterlabels,
   gridnum,
   color_in,
@@ -17,23 +17,23 @@ plot_trajectory(
 )
 }
 \arguments{
-\item{pseudotime_use:}{A vector of pseudotime inferred.}
+\item{pseudotime}{A length n vector of pseudotime inferred from Slingshot.}
 
-\item{info:}{A n by 2 data frame of cell locations.}
+\item{location}{A n by 2 data frame of spot locations.}
 
-\item{clusterlabels:}{A vector of integers, the cluster labels for each cell.}
+\item{clusterlabels}{A vector of integers, the cluster labels for each spot}
 
-\item{gridnum:}{Number of grids that evenly segment the whole tissue section.}
+\item{gridnum}{Number of grids that evenly segment the whole tissue section.}
 
-\item{color_in:}{A vector of character strings representing colors for each cluster.}
+\item{color_in}{A vector of character strings representing colors for each cluster.}
 
-\item{pointsize:}{An integer, the point size of each cell.}
+\item{pointsize}{An integer, the point size of each spot}
 
-\item{arrowlength:}{An integer, the length of arrows inside a grid between one cell with smallest pseudotime and largest pseudotime.}
+\item{arrowlength}{An integer, the length of arrows inside a grid between one spot with smallest pseudotime and largest pseudotime.}
 
-\item{arrowsize:}{An integer, the size of arrows inside a grid between one cell with smallest pseudotime and largest pseudotime.}
+\item{arrowsize}{An integer, the size of arrows inside a grid between one spot with smallest pseudotime and largest pseudotime.}
 
-\item{textsize:}{An integer, the size of text in the figure.}
+\item{textsize}{An integer, the size of text in the figure.}
 }
 \value{
 A ggplot object.

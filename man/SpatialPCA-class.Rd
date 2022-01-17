@@ -12,50 +12,50 @@ are listed below.
 \section{Slots}{
 
 \describe{
-\item{\code{counts:}}{The raw expression count matrix.}
+\item{\code{counts}}{The raw expression count matrix. Rows are genes, columns are spots/cells.}
 
-\item{\code{normalized_expr:}}{Normalized (default is SCTransform normalization from Seurat R package) expression matrix.}
+\item{\code{normalized_expr}}{Normalized (by default we use SCTransform normalization in Seurat R package) expression matrix.}
 
-\item{\code{project:}}{Name of the project (for record keeping).}
+\item{\code{project}}{Name of the project (for record keeping).}
 
-\item{\code{covariate:}}{The covariates in experiments (if any covariate included).}
+\item{\code{covariate}}{The covariates in experiments (if any covariate included).}
 
-\item{\code{location:}}{Cell/spot corrdinates to compute the kernel matrix.}
+\item{\code{location}}{Cell/spot spatial coordinates to compute the kernel matrix.}
 
-\item{\code{kernelmat:}}{The kernel matrix for spatial relationship between locations.}
+\item{\code{kernelmat}}{The kernel matrix for spatial relationship between locations.}
 
-\item{\code{kerneltype:}}{The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel.}
+\item{\code{kerneltype}}{The type of kernel to be used, either "gaussian" for gaussian kernel, or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel.}
 
-\item{\code{bandwidthtype:}}{The type of bandwidth to be used in Gaussian kernel, "SJ" for Sheather & Jones (1991) method (usually used in small size datasets), "Silverman" for Silverman's ‘rule of thumb’ method (1986)(usually used in large size datasets).}
+\item{\code{bandwidthtype}}{The type of bandwidth to be used in Gaussian kernel, "SJ" for Sheather & Jones (1991) method (usually used in small sample size datasets), "Silverman" for Silverman's ‘rule of thumb’ method (1986)(usually used in large sample size datasets).}
 
-\item{\code{bandwidth:}}{The bandwidth in Gaussian kernel.}
+\item{\code{bandwidth}}{The bandwidth in Gaussian kernel, users can also specify their preferred bandwidth.}
 
-\item{\code{sparseKernel:}}{To choose if the user wants to use a sparse kernel matrix or not. It is recommended to choose sparseKernel="TRUE" when sample size is very large.}
+\item{\code{sparseKernel}}{To choose if the user wants to use a sparse kernel matrix or not. It is recommended to choose sparseKernel="TRUE" when sample size is large and you want to speed up the calculation.}
 
-\item{\code{sparseKernel_tol:}}{When sparseKernel=TRUE, the cut-off value when building sparse kernel matrix, any element in the kernel matrix greater than sparseKernel_tol will be kept, otherwise will be set to 0 to save memory.}
+\item{\code{sparseKernel_tol}}{When sparseKernel=TRUE, sparseKernel_tol is the cut-off value when building sparse kernel matrix, any element in the kernel matrix greater than sparseKernel_tol will be kept, otherwise will be set to 0 to save memory.}
 
-\item{\code{sparseKernel_ncore:}}{When sparseKernel=TRUE, the number of CPU cores to use when building sparse kernel matrix.}
+\item{\code{sparseKernel_ncore}}{When sparseKernel=TRUE, sparseKernel_ncore is the number of CPU cores to use when building the sparse kernel matrix.}
 
-\item{\code{fast:}}{Select "TRUE" to accrelerate the algorithm by performing low-rank approximation on the kernel matrix, otherwise "FALSE".}
+\item{\code{fast}}{Select "TRUE" to accrelerate the algorithm by performing low-rank approximation on the kernel matrix, otherwise "FALSE" for calculation without low-rank approximation on the kernel matrix.}
 
-\item{\code{eigenvecnum:}}{User could optionally specify the number of top eigenvectors and eigenvalues to be used in low-rank approximation in the eigen decomposition step for kernel matrix.}
+\item{\code{eigenvecnum}}{When fast=TRUE, the user can optionally specify the number of top eigenvectors and eigenvalues to be used in low-rank approximation when performing eigen decomposition on the kernel matrix.}
 
-\item{\code{tau:}}{The variance parameter in covariance matrix \Sigma, to be inferred through the algorithm.}
+\item{\code{tau}}{The variance parameter in covariance matrix for the spatial PCs, to be inferred through the algorithm.}
 
-\item{\code{sigma2_0:}}{The residual error variance, to be inferred through the algorithm.}
+\item{\code{sigma2_0}}{The residual error variance, to be inferred through the algorithm.}
 
-\item{\code{SpatialPCnum:}}{The number of Spatial PCs, specified by the user, default is 20.}
+\item{\code{SpatialPCnum}}{The number of Spatial PCs, specified by the user, default is 20.}
 
-\item{\code{tau:}}{The variance parameter in covariance matrix for the distribution of the spatial PCs.}
+\item{\code{W}}{The factor loading matrix.}
 
-\item{\code{W:}}{The factor loading matrix.}
+\item{\code{SpatialPCs}}{The estimated spatial PCs.}
 
-\item{\code{SpatialPCs:}}{The estimated spatial PCs.}
+\item{\code{highPCs}}{The estimated high resolution spatial PCs, if needed.}
 
-\item{\code{highPCs:}}{The estimated high resolution spatial PCs.}
+\item{\code{highPos}}{The scaled locations of estimated high resolution spatial PCs, if needed.}
 
-\item{\code{highPos:}}{The normalized positions of estimated high resolution spatial PCs.}
+\item{\code{expr_pred}}{The predicted gene expression on new locations when highPCs and highPos are avaliable.}
 
-\item{\code{params:}}{List of model parameters.}
+\item{\code{params}}{List of model parameters.}
 }}
 

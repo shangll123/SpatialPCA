@@ -7,9 +7,9 @@
 bandwidth_select(expr, method)
 }
 \arguments{
-\item{expr:}{A m gene by n location of normalized and scaled gene expression matrix.}
+\item{expr}{A m gene by n location matrix of normalized gene expression matrix.}
 
-\item{method:}{The method used in bandwidth selection, "SJ" usually for small sample size data, "Silverman" usually for large sample size data.}
+\item{method}{The method used in bandwidth selection, "SJ" usually for small sample size data, "Silverman" usually for large sample size data.}
 }
 \value{
 A numeric value of calculated bandwidth.

@@ -2,18 +2,20 @@
 % Please edit documentation in R/SpatialPCA_utilties.R
 \name{plot_factor_value}
 \alias{plot_factor_value}
-\title{Obtain factor value plot.}
+\title{Visualize PCs on their locations.}
 \usage{
-plot_factor_value(info, latent_dat, textmethod, pointsize = 2, textsize = 15)
+plot_factor_value(location, PCs, textmethod, pointsize = 2, textsize = 15)
 }
 \arguments{
-\item{info:}{A n cell by k dimension of location matrix. n is cell number.}
+\item{location}{A n cell by k dimension of location matrix. n is cell number, k=2 if the spots are on 2D space.}
 
-\item{latent_dat:}{A d by n matrix of low dimensional components.}
+\item{PCs}{A d by n matrix of low dimensional components.}
 
-\item{pointsize:}{The point size of each cell.}
+\item{textmethod}{A text string of the name of method used to extract latent factors, e.g. "SpatialPCA" or "PCA". It will be shown as the title of the figures.}
 
-\item{textsize:}{The text size in the legend.}
+\item{pointsize}{The point size of each location for visualization.}
+
+\item{textsize}{The text size in the figure legend.}
 }
 \value{
 A list of ggplot objects for factor value plots.

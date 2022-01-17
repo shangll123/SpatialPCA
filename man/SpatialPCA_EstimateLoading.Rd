@@ -2,7 +2,7 @@
 % Please edit documentation in R/SpatialPCA_EstimateLoading.R
 \name{SpatialPCA_EstimateLoading}
 \alias{SpatialPCA_EstimateLoading}
-\title{Calculating loading matrix.}
+\title{Calculate loading matrix.}
 \usage{
 SpatialPCA_EstimateLoading(
   object,
@@ -14,22 +14,22 @@ SpatialPCA_EstimateLoading(
 )
 }
 \arguments{
-\item{object:}{SpatialPCA object.}
+\item{object}{SpatialPCA object.}
 
-\item{maxiter:}{Maximum iteration number. Default is 300.}
+\item{maxiter}{Maximum iteration number. Default is 300.}
 
-\item{initial_tau:}{Initial value of tau. Default is 1. Because we need tau to be positive, we calculate exp(log(tau)) during iterations.}
+\item{initial_tau}{Initial value of tau. Default is 1. Because we need tau to be positive, we calculate exp(log(tau)) during iterations.}
 
-\item{fast:}{}
+\item{fast}{Select "TRUE" if the user wants to use low-rank approximation on the kernel matrix to accelerate the algorithm, otherwise select "FALSE".}
 
-\item{eigenvecnum:}{An integer, the number of top eigenvectors and eigenvalues to be used in low-rank approximation in the eigen decomposition step for kernel matrix.
+\item{eigenvecnum}{When fast=TRUE, eigenvecnum is the number of top eigenvectors and eigenvalues to be used in low-rank approximation in the eigen decomposition step for kernel matrix.
 The default is NULL, if specified, it is recommended to use eigenvecnum=20 when sample size is large (e.g. >5,000). When sample size is small, eigenvecnum is suggested to explain at least 90\% variance.}
 
-\item{SpatialPCnum:}{Number of spatial PCs.}
+\item{SpatialPCnum}{Number of spatial PCs.}
 }
 \value{
 Returns SpatialPCA object with estimated loading matrix W.
 }
 \description{
-Calculating loading matrix.
+Calculate loading matrix.
 }

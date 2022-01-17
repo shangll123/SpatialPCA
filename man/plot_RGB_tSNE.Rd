@@ -2,21 +2,21 @@
 % Please edit documentation in R/SpatialPCA_utilties.R
 \name{plot_RGB_tSNE}
 \alias{plot_RGB_tSNE}
-\title{Obtain RGB plot from tSNE.}
+\title{Visualize RGB plot from tSNE.}
 \usage{
-plot_RGB_tSNE(info, latent_dat, pointsize = 2, textsize = 15)
+plot_RGB_tSNE(location, latent_dat, pointsize = 2, textsize = 15)
 }
 \arguments{
-\item{info:}{A n cell by k dimension of location matrix. n is cell number.}
+\item{location}{A n by k location matrix. n is spot number.}
 
-\item{latent_dat:}{A d by n matrix of low dimensional components.}
+\item{latent_dat}{A d by n matrix of low dimensional components.}
 
-\item{pointsize:}{The point size of each cell.}
+\item{pointsize}{The point size of each spot.}
 
-\item{textsize:}{The text size in the legend.}
+\item{textsize}{The text size in the legend.}
 }
 \value{
-A list of objects.
+A list.
 \item{RGB}{A data frame with five columns: x coordinate, y coordinate, R, G, and B color index}
 \item{figure}{A ggplot object for RGB plot from tSNE}
 }

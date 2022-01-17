@@ -2,19 +2,19 @@
 % Please edit documentation in R/SpatialPCA_utilties.R
 \name{walktrap_clustering}
 \alias{walktrap_clustering}
-\title{Obtain walktrap clustering cluster labels.}
+\title{Obtain clustering cluster labels through walktrap method.}
 \usage{
-walktrap_clustering(knearest, latent_dat)
+walktrap_clustering(clusternum, latent_dat, knearest = 100)
 }
 \arguments{
-\item{knearest:}{A vector of integers, number of nearest neighbors for SNN graph construction in walktrap clustering.}
+\item{clusternum}{The desired number of clusters the user wants to obtain.}
 
-\item{latent_dat:}{A d by n matrix of low dimensional components.}
+\item{latent_dat}{A d by n matrix of low dimensional components, d is number of PCs, n is number of spots.}
+
+\item{knearest}{An integers, number of nearest neighbors for SNN graph construction in walktrap clustering.}
 }
 \value{
-A list of clustering results.
-\item{cluster_label}{a list of cluster labels, each corresponding to the vector of nearest neighbors}
-\item{cluster_num}{a list of total number of clusters in each cluster label.}
+The cluster labels.
 }
 \description{
 This function performs walktrap clustering on input low dimensional components.

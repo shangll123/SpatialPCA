@@ -2,19 +2,19 @@
 % Please edit documentation in R/SpatialPCA_utilties.R
 \name{louvain_clustering}
 \alias{louvain_clustering}
-\title{Obtain louvain clustering cluster labels.}
+\title{Obtain clustering cluster labels through louvain method.}
 \usage{
-louvain_clustering(knearest, latent_dat)
+louvain_clustering(clusternum, latent_dat, knearest = 100)
 }
 \arguments{
-\item{knearest:}{A vector of integers, number of nearest neighbors for KNN graph construction in louvain clustering.}
+\item{clusternum}{The desired number of clusters the user wants to obtain.}
 
-\item{latent_dat:}{A d by n matrix of low dimensional components.}
+\item{latent_dat}{A d by n matrix of low dimensional components, d is number of PCs, n is number of spots.}
+
+\item{knearest}{An integers, number of nearest neighbors for KNN graph construction in louvain clustering.}
 }
 \value{
-A list of clustering results.
-\item{cluster_label}{a list of cluster labels, each corresponds to the vector of nearest neighbors.}
-\item{cluster_num}{a list of total number of clusters in each cluster label.}
+The cluster labels.
 }
 \description{
 This function performs louvain clustering on input low dimensional components.

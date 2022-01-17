@@ -4,13 +4,15 @@
 \alias{get_PCA}
 \title{Obtain PCA low dimensional components for dimension reduction methods comparison.}
 \usage{
-get_PCA(object)
+get_PCA(expr, PCnum)
 }
 \arguments{
-\item{object:}{SpatialPCA object.}
+\item{expr}{Normalized gene expression g by n matrix. g is gene number, n is sample size.}
+
+\item{PCnum}{Number of PCs.}
 }
 \value{
-A d by n matrix of low dimensional components from PCA. d is number of low dimensional components, which is same as number of Spatial PCs in SpatialPCA. n is sample size.
+A d by n matrix of low dimensional components from PCA. d is number of low dimensional components, n is sample size.
 }
 \description{
 Obtain PCA low dimensional components for dimension reduction methods comparison.

@@ -7,15 +7,15 @@
 kernel_build(kerneltype = "gaussian", location, bandwidth)
 }
 \arguments{
-\item{kerneltype:}{The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel.}
+\item{kerneltype}{The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel.}
 
-\item{location:}{Cell/spot corrdinates to compute the kernel matrix}
+\item{location}{A n by d matrix of cell/spot location coordinates.}
 
-\item{bandwidth:}{A numeric value of bandwidth.}
+\item{bandwidth}{A numeric value of bandwidth.}
 }
 \value{
-The kernel matrix for spatial relationship between locations
+The kernel matrix for spatial relationship between locations.
 }
 \description{
-This function calculates kernel matrix.
+This function calculates kernel matrix from spatial locations.
 }

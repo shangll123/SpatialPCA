@@ -1,16 +1,24 @@
 Package: SpatialPCA
 Title: Spatially Aware Dimension Reduction for Spatial Transcriptomics
-Version: 1.0.1
-Date: 2021-07-31
-Author: Lulu Shang
-Maintainer: Lulu Shang <shanglu@umich.edu>
-Description: SpatialPCA is a spatially aware dimension reduction method that explicitly accounts for the spatial correlation across tissue locations. 
+Version: 1.2.0
+Authors@R: 
+    c(person("Lulu", "Shang", , "shanglu@umich.ed", role = c("aut")),
+      person("Xiang", "Zhou", , "xzhousph@umich.edu", role = c("aut")),
+      person("Michael", "Kleinsasser", , "biostat-cran-manager@umich.edu", role = c("cre")))
+Description: SpatialPCA is a spatially aware dimension reduction method that explicitly accounts for the spatial correlation across tissue locations. SpatialPCA can extract a low dimensional representation of the spatial transcriptomics data with enriched biological signal and preserved spatial correlation structure, thus unlocking many existing computational tools previously developed in single-cell RNAseq studies for tailored and novel analysis of spatial transcriptomics. 
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
-Imports: RSpectra
-Suggests: rmarkdown, knitr
+RoxygenNote: 7.1.2
+Suggests: knitr, rmarkdown
+Imports: methods, FNN, MASS, Matrix, RSpectra, Rtsne, SPARK, Seurat,
+        igraph, parallel, pdist, tidyr, umap, bluster, scater, ggplot2,
+        splatter, dplyr
+biocViews: bluster, scater, splatter
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2021-08-14 21:23:29 UTC; shanglu
+Packaged: 2022-01-17 22:11:16 UTC; shanglu
+Author: Lulu Shang [aut],
+  Xiang Zhou [aut],
+  Michael Kleinsasser [cre]
+Maintainer: Michael Kleinsasser <biostat-cran-manager@umich.edu>

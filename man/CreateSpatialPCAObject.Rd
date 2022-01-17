@@ -9,42 +9,47 @@ CreateSpatialPCAObject(
   location,
   covariate = NULL,
   project = "SpatialPCA",
-  gene.type = "hvg",
+  gene.type = "spatial",
   sparkversion = "spark",
   numCores_spark = 1,
-  gene.number = NULL,
+  gene.number = 3000,
   customGenelist = NULL,
   min.loctions = 20,
   min.features = 20
 )
 }
 \arguments{
-\item{counts:}{Gene expression count matrix (matrix), m x n, m is the number of genes and n is the number of locations.}
+\item{counts}{Gene expression count matrix (matrix), the dimension is m x n, where m is the number of genes and n is the number of locations.}
 
-\item{location:}{Spatial location matrix (matrix), n x d, d is dimensin of spatial coordinates, e.g. d=2 for locations on 2D space.}
+\item{location}{Spatial location matrix (matrix), the dimension is n x d, n is the number of locations, d is dimensin of spatial coordinates, e.g. d=2 for locations on 2D space. The rownames of locations and the colnames of count matrix should be matched.}
 
-\item{covariate:}{The covariates in experiments (data.frame, if any covariate included), n x q, n is the number of locations, q is the number of covariates.}
+\item{covariate}{The covariates in experiments (matrix, if any covariate included), n x q, n is the number of locations, q is the number of covariates. The rownames of covariates and the rownames of locations should be matched.}
 
-\item{project:}{Project names.}
+\item{project}{Name of the project (for record keeping).}
 
-\item{min.loctions:}{The features (genes) detected in at least this many loctions.}
+\item{gene.type}{The type of genes to be used: "spatial" for spatially expressed genes; "hvg" for highly variable genes; "custom" for user specified genes, default is "spatial".}
 
-\item{min.features:}{The locations where at least this many features (genes) are detected.}
+\item{sparkversion}{In spatial gene selection, specify "spark" for small sample size data for higher detection power of spatial genes, "sparkx" for large sample size data for saving time and memory.}
 
-\item{gene.type:}{The type of genes to be used: "hvg" for highly variable genes; "spatial" for spatially expressed genes; "custom" for user specified genes.}
+\item{numCores_spark}{If gene.type="spatial", specify the number of CPU cores in SPARK package to use when selecting spatial genes.}
 
-\item{gene.number:}{The number of top highly variable genes if gene.selection=="hvg" (all HVG genes if number is not specified);
-number of top spatially expressed genes if gene.selection=="spatial" (all significant spatially expressed genes if number is not specified).}
+\item{gene.number}{The number of top highly variable genes if gene.selection=="hvg" (use all HVG genes if this number is not specified);
+number of top spatially expressed genes if gene.selection=="spatial" (use all significant spatially expressed genes if this number is not specified).}
 
-\item{customGenelist:}{A list of user specified genes if  gene.type=="custom".}
+\item{customGenelist}{A list of user specified genes if  gene.type=="custom".}
 
-\item{sparkversion:}{In spatial gene selection, specify "spark" for small sample size data, "sparkx" for large sample size data.}
+\item{min.loctions}{The features (genes) detected in at least min.loctions number of loctions, default is 20.}
 
-\item{numCores_spark:}{In spatial gene selection, specify the number of cores in SPARK package when selecting spatial genes.}
+\item{min.features}{The locations where at least min.features number of features (genes) are detected, default is 20.}
 }
 \value{
-Returns SpatialPCA object with filtered gene expression matrix.
+Returns SpatialPCA object, with filtered and normalized gene expression matrix and corresponding location matrix.
 }
 \description{
 Create the SpatialPCA object with filtering and normalization step.
+}
+\examples{
+
+
+
 }
