@@ -142,7 +142,7 @@ CreateSpatialPCAObject <- function(counts, location, covariate=NULL,project = "S
 	if(!is.null(customGenelist)){ # if user specified customGenelist
 
 								cat(paste("## Use SCTransform function in Seurat to normalize data. \n"))
-								Seu = SCTransform(Seu, return.only.var.genes = FALSE, variable.features.n = NULL,  variable.features.rv.th = 1.3)
+								Seu = SCTransform(Seu, return.only.var.genes = FALSE, variable.features.n = NULL,  variable.features.rv.th = 1.3,verbose = FALSE)
 						 		cat(paste("## Custom gene list contains ",length(customGenelist)," genes. \n"))
 						 		customGenelist = as.character(customGenelist)
 						 		ind_match = na.omit(match(customGenelist, rownames(object@counts)))
@@ -158,14 +158,14 @@ CreateSpatialPCAObject <- function(counts, location, covariate=NULL,project = "S
 
 								if(is.null(gene.number)){
 
-								Seu = SCTransform(Seu, return.only.var.genes = TRUE, variable.features.n = NULL,  variable.features.rv.th = 1.3)
+								Seu = SCTransform(Seu, return.only.var.genes = TRUE, variable.features.n = NULL,  variable.features.rv.th = 1.3,verbose = FALSE)
 								object@normalized_expr = Seu@assays$SCT@scale.data
 								gene.number = dim(Seu@assays$SCT@scale.data)[1]
 								cat(paste("## Gene number is not specified, using all ",gene.number," highly variable genes. \n"))  		
 
 								}else{
 
-								Seu = SCTransform(Seu, return.only.var.genes = TRUE, variable.features.n = NULL,  variable.features.rv.th = 1.3)
+								Seu = SCTransform(Seu, return.only.var.genes = TRUE, variable.features.n = NULL,  variable.features.rv.th = 1.3,verbose = FALSE)
 								hvg_gene_num = dim(Seu@assays$SCT@scale.data)[1]
 
 								if( gene.number < hvg_gene_num ){
@@ -187,7 +187,7 @@ CreateSpatialPCAObject <- function(counts, location, covariate=NULL,project = "S
 
 						  	# normalize data
 						  	cat(paste("## Use SCTransform function in Seurat to normalize data. \n"))
-						  	Seu = SCTransform(Seu, return.only.var.genes = FALSE, variable.features.n = NULL,  variable.features.rv.th = 1.3)
+						  	Seu = SCTransform(Seu, return.only.var.genes = FALSE, variable.features.n = NULL,  variable.features.rv.th = 1.3,verbose = FALSE)
 						 	
 				  	# select spatial genes
 				 	if(sparkversion=="spark"){
