@@ -147,11 +147,10 @@ kernel_build = function (kerneltype = "gaussian", location, bandwidth)
 #' @param ncores A integer value of number of CPU cores to use when building sparse kernel matrix.
 #' @return The sparse kernel matrix for spatial relationship between locations.
 #'
-#' @import tidyr
 #' @import parallel
 #' @import MASS
 #' @import pdist
-#' @import Matrix
+#' @import tidyr
 #'
 #' @export
 kernel_build_sparse = function(kerneltype,location, bandwidth,tol, ncores)
@@ -174,7 +173,7 @@ kernel_build_sparse = function(kerneltype,location, bandwidth,tol, ncores)
 
 		results = mclapply(1:dim(location)[1], fx_gaussian, mc.cores = ncores)
   		tib = tibble(results)  %>%  unnest_wider(results)
-		K_sparse = sparseMatrix(i =unlist(tib[[1]]), j= unlist(tib[[2]]), x= unlist(tib[[3]]),  dims = c(dim(location)[1],dim(location)[1] ))
+		K_sparse = Matrix::sparseMatrix(i =unlist(tib[[1]]), j= unlist(tib[[2]]), x= unlist(tib[[3]]),  dims = c(dim(location)[1],dim(location)[1] ))
         #K = exp(-1*as.matrix(dist(location)^2)/bandwidth)
     }
     else if (kerneltype == "cauchy") {
@@ -188,7 +187,7 @@ kernel_build_sparse = function(kerneltype,location, bandwidth,tol, ncores)
 
 		results = mclapply(1:dim(location)[1], fx_cauchy, mc.cores = ncores)
   		tib = tibble(results)  %>%  unnest_wider(results)
-		K_sparse = sparseMatrix(i =unlist(tib[[1]]), j= unlist(tib[[2]]), x= unlist(tib[[3]]),  dims = c(dim(location)[1],dim(location)[1] ))
+		K_sparse = Matrix::sparseMatrix(i =unlist(tib[[1]]), j= unlist(tib[[2]]), x= unlist(tib[[3]]),  dims = c(dim(location)[1],dim(location)[1] ))
         # K = 1/(1 + 1*as.matrix(dist(location)^2)/as.numeric(bandwidth))
     }
     else if (kerneltype == "quadratic") {

@@ -32,14 +32,12 @@ get_PCA = function(expr,PCnum){
 #' @param count Count expression g by n matrix. g is gene number, n is sample size.
 #' @param PCnum Number of PCs.
 #' @return A d by n matrix of low dimensional components from NMF. d is number of low dimensional components, which is same as number of Spatial PCs in SpatialPCA. n is sample size.
-#' @import scater
-#' @import NMF
 #' @export
 get_NMF = function(count, PCnum){
   #suppressMessages(require(scater))
   #suppressMessages(require(NMF))
   expr = log(count+1) # non negative
-  res <- calculateNMF(expr, ncomponents = PCnum)
+  res <- scater::calculateNMF(expr, ncomponents = PCnum)
   Z_NMF = t(res)
   return(Z_NMF)
 }
@@ -53,10 +51,6 @@ get_NMF = function(count, PCnum){
 #' @param knearest An integers, number of nearest neighbors for KNN graph construction in louvain clustering.
 #' @return The cluster labels.
 #'
-#' @import FNN
-#' @import igraph
-#' @import bluster
-#'
 #' @export
 louvain_clustering = function(clusternum, latent_dat,knearest=100){
   set.seed(1234)
@@ -67,13 +61,13 @@ louvain_clustering = function(clusternum, latent_dat,knearest=100){
   PCvalues = latent_dat
   info.spatial = as.data.frame(t(PCvalues))
   colnames(info.spatial) =  paste0("factor", 1:nrow(PCvalues))
-  knn.norm = get.knn(as.matrix(t(PCvalues)), k = knearest)
+  knn.norm = FNN::get.knn(as.matrix(t(PCvalues)), k = knearest)
   knn.norm = data.frame(from = rep(1:nrow(knn.norm$nn.index),
   k=knearest), to = as.vector(knn.norm$nn.index), weight = 1/(1 + as.vector(knn.norm$nn.dist)))
-  nw.norm = graph_from_data_frame(knn.norm, directed = FALSE)
-  nw.norm = simplify(nw.norm)
-  lc.norm = cluster_louvain(nw.norm)
-  merged <- mergeCommunities(nw.norm, lc.norm$membership, number=clusternum)
+  nw.norm = igraph::graph_from_data_frame(knn.norm, directed = FALSE)
+  nw.norm = igraph::simplify(nw.norm)
+  lc.norm = igraph::cluster_louvain(nw.norm)
+  merged <- bluster::mergeCommunities(nw.norm, lc.norm$membership, number=clusternum)
   clusterlabel = as.character(as.integer(as.factor(paste0("cluster",merged))))
   return("cluster_label"=clusterlabel)
 }
@@ -86,9 +80,6 @@ louvain_clustering = function(clusternum, latent_dat,knearest=100){
 #' @param knearest An integers, number of nearest neighbors for SNN graph construction in walktrap clustering.
 #' @return The cluster labels.
 #'
-#' @import bluster
-#' @import igraph
-#'
 #' @export
 walktrap_clustering = function(clusternum, latent_dat,knearest=100){
   set.seed(1234)
@@ -96,7 +87,7 @@ walktrap_clustering = function(clusternum, latent_dat,knearest=100){
   # suppressMessages(require(igraph))
 
   PCvalues = latent_dat
-  g <- makeSNNGraph(as.matrix(t(PCvalues)),k = knearest)
+  g <- bluster::makeSNNGraph(as.matrix(t(PCvalues)),k = knearest)
   clusters <- igraph::cluster_fast_greedy(g)$membership
   g_walk <- igraph::cluster_walktrap(g)
   cluster_label_new = as.character(igraph::cut_at(g_walk, no=clusternum))
@@ -192,9 +183,10 @@ plot_factor_value = function(location, PCs,textmethod,pointsize=2,textsize=15){
 #' @param textsize An integer, the text size in the legend.
 #' @param title_in A character string, the title you want to display at the top of the figure.
 #' @param color_in A vector of colors for each cluster.
+#' @param legend A character string, the position of the figure legend. Select from "top", "bottom","left" or "right".
 #' @return A ggplot object.
 #' @export
-plot_cluster = function(location, clusterlabel, pointsize=3,textsize=15 ,title_in,color_in){
+plot_cluster = function(location, clusterlabel, pointsize=3,text_size=15 ,title_in,color_in,legend="none"){
   cluster = clusterlabel
   loc_x=location[,1]
   loc_y=location[,2]
@@ -204,15 +196,13 @@ plot_cluster = function(location, clusterlabel, pointsize=3,textsize=15 ,title_i
         scale_color_manual(values = color_in)+
         ggtitle(paste0(title_in))+
         theme_void()+
-        theme(plot.title = element_text(size = textsize,  face = "bold"),
-              text = element_text(size = textsize),
+        theme(plot.title = element_text(size = text_size,  face = "bold"),
+              text = element_text(size = text_size),
               #axis.title = element_text(face="bold"),
               #axis.text.x=element_text(size = 15) ,
-              legend.position = "bottom")
+              legend.position =legend)
   p
 }
-
-
 
 
 
