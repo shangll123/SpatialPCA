@@ -11,13 +11,12 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Suggests: knitr, rmarkdown
-Imports: methods, FNN, MASS, Matrix, RSpectra, Rtsne, SPARK, Seurat,
-        igraph, parallel, pdist, tidyr, umap, bluster, scater, ggplot2,
-        splatter, dplyr
-biocViews: bluster, scater, splatter
+Imports: methods, MASS, Matrix, RSpectra, Rtsne, SPARK, Seurat,
+        parallel, pdist, tidyr, umap, ggplot2, splatter, dplyr
+biocViews: bluster
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2022-01-17 22:11:16 UTC; shanglu
+Packaged: 2022-01-27 04:10:45 UTC; shanglu
 Author: Lulu Shang [aut],
   Xiang Zhou [aut],
   Michael Kleinsasser [cre]
