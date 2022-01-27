@@ -2,7 +2,7 @@ Package: SpatialPCA
 Title: Spatially Aware Dimension Reduction for Spatial Transcriptomics
 Version: 1.2.0
 Authors@R: 
-    c(person("Lulu", "Shang", , "shanglu@umich.ed", role = c("aut")),
+    c(person("Lulu", "Shang", , "shanglu@umich.ed", role = c("aut","cre")),
       person("Xiang", "Zhou", , "xzhousph@umich.edu", role = c("aut")),
       person("Michael", "Kleinsasser", , "biostat-cran-manager@umich.edu", role = c("cre")))
 Description: SpatialPCA is a spatially aware dimension reduction method that explicitly accounts for the spatial correlation across tissue locations. SpatialPCA can extract a low dimensional representation of the spatial transcriptomics data with enriched biological signal and preserved spatial correlation structure, thus unlocking many existing computational tools previously developed in single-cell RNAseq studies for tailored and novel analysis of spatial transcriptomics. 
@@ -20,4 +20,4 @@ Packaged: 2022-01-27 04:10:45 UTC; shanglu
 Author: Lulu Shang [aut],
   Xiang Zhou [aut],
   Michael Kleinsasser [cre]
-Maintainer: Michael Kleinsasser <biostat-cran-manager@umich.edu>
+Maintainer: Lulu Shang <shanglu@umich.edu>
