@@ -8,9 +8,10 @@ plot_cluster(
   location,
   clusterlabel,
   pointsize = 3,
-  textsize = 15,
+  text_size = 15,
   title_in,
-  color_in
+  color_in,
+  legend = "none"
 )
 }
 \arguments{
@@ -20,11 +21,13 @@ plot_cluster(
 
 \item{pointsize}{An integer, the point size of each spot.}
 
-\item{textsize}{An integer, the text size in the legend.}
-
 \item{title_in}{A character string, the title you want to display at the top of the figure.}
 
 \item{color_in}{A vector of colors for each cluster.}
+
+\item{legend}{A character string, the position of the figure legend. Select from "top", "bottom","left" or "right".}
+
+\item{textsize}{An integer, the text size in the legend.}
 }
 \value{
 A ggplot object.
