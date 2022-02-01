@@ -13,6 +13,7 @@ SpatialPCA is a spatially aware dimension reduction method that aims to infer a 
 
 <img align="top" src="https://raw.githubusercontent.com/shangll123/workflowr_Test/main/docs/assets/main_figure.jpeg" alt="drawing" width="600"/>
 
+
 The analysis codes for this project can be found [here](http://lulushang.org/docs/Projects/SpatialPCA).
 
 
@@ -27,4 +28,5 @@ SpatialPCA is licensed under the GNU General Public License v3.0.
 
 ## Citation
 Lulu Shang, and Xiang Zhou (2022). Spatially aware dimension reduction for spatial transcriptomics. [bioRxiv](https://www.biorxiv.org/content/10.1101/2022.01.19.476966v1).
+
 doi: https://doi.org/10.1101/2022.01.19.476966
