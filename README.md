@@ -12,14 +12,20 @@ library(devtools)
 install_github("shangll123/SpatialPCA")
 ```
 Please make sure you have installed the folowing R packages: 
+
 For matrix multiplication: Matrix, RSpectra;
+
 For spatial gene selection: SPARK;
+
 For expression data normalization: Seurat;
+
 For fast building large kernel matrix: parallel, pdist, tidyr, dplyr;
+
 For result visualization: ggplot2.
 
 ## Package Tutorial
 [SpatialPCA tutorial website.](http://lulushang.org/SpatialPCA_Tutorial/)
+
 The tutorial includes main example codes for multiple spatial transcriptomics datasets (e.g. DLPFC, Slide-Seq cerebellum, Slide-Seq V2 hippocampus, Human breast tumor, and Vizgen MERFISH.)
 
 Other analysis codes for this project can be found [here](http://lulushang.org/docs/Projects/SpatialPCA).
