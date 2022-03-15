@@ -14,8 +14,9 @@ install_github("shangll123/SpatialPCA")
 
 ## Package Tutorial
 [SpatialPCA tutorial website](http://lulushang.org/SpatialPCA_Tutorial/)
+The tutorial includes the main example codes for the multiple spatial transcriptomics datasets (e.g. DLPFC, Slide-Seq cerebellum, Slide-Seq V2 hippocampus, Human breast tumor, and Vizgen MERFISH.)
 
-The analysis codes for this project can be found [here](http://lulushang.org/docs/Projects/SpatialPCA).
+Other analysis codes for this project can be found [here](http://lulushang.org/docs/Projects/SpatialPCA).
 
 ## Operating systems (version 1.2.0 SpatialPCA) tested on:
 macOS Catalina 10.15.7
