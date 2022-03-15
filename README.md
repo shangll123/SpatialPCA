@@ -24,7 +24,7 @@ For fast building large kernel matrix: parallel, pdist, tidyr, dplyr;
 For result visualization: ggplot2.
 
 ## Package Tutorial
-[SpatialPCA tutorial website.](http://lulushang.org/SpatialPCA_Tutorial/)
+Please see the [SpatialPCA tutorial website.](http://lulushang.org/SpatialPCA_Tutorial/)
 
 The tutorial includes main example codes for multiple spatial transcriptomics datasets (e.g. DLPFC, Slide-Seq cerebellum, Slide-Seq V2 hippocampus, Human breast tumor, and Vizgen MERFISH.)
 
