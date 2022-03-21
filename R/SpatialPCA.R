@@ -145,7 +145,7 @@ CreateSpatialPCAObject <- function(counts, location, covariate=NULL,project = "S
 								Seu = SCTransform(Seu, return.only.var.genes = FALSE, variable.features.n = NULL,  variable.features.rv.th = 1.3)
 						 		cat(paste("## Custom gene list contains ",length(customGenelist)," genes. \n"))
 						 		customGenelist = as.character(customGenelist)
-						 		ind_match = na.omit(match(customGenelist, rownames(object@counts)))
+						 		ind_match = na.omit(match(customGenelist, rownames(Seu@assays$SCT@scale.data)))
 						 		cat(paste("## In total ",length(ind_match)," custom genes are matched with genes in the count matrix. \n"))
 						 		object@normalized_expr = Seu@assays$SCT@scale.data[ind_match,]
 						 		cat(paste("## Use ",length(ind_match)," custom genes for analysis. \n"))
