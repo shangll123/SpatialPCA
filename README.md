@@ -11,17 +11,6 @@ You can install the current version of SpatialPCA from GitHub with:
 library(devtools)
 install_github("shangll123/SpatialPCA")
 ```
-Please make sure you have already installed the folowing R packages: 
-
-For matrix multiplication: Matrix, RSpectra;
-
-For spatial gene selection: SPARK;
-
-For expression data normalization: Seurat;
-
-For fast building large kernel matrix: parallel, pdist, tidyr, dplyr;
-
-For result visualization: ggplot2.
 
 ## Package Tutorial
 Please see the [SpatialPCA tutorial website.](http://lulushang.org/SpatialPCA_Tutorial/)
