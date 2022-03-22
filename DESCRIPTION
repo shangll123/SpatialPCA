@@ -13,6 +13,8 @@ RoxygenNote: 7.1.2
 Suggests: knitr, rmarkdown
 Imports: methods, MASS, Matrix, RSpectra, Rtsne, SPARK, Seurat,
         parallel, pdist, tidyr, umap, ggplot2, splatter, dplyr
+Remotes:
+    xzhoulab/SPARK
 biocViews: bluster
 VignetteBuilder: knitr
 NeedsCompilation: no
