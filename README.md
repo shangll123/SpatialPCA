@@ -24,6 +24,8 @@ macOS Catalina 10.15.7
 
 Ubuntu 18.04.5 LTS (Bionic Beaver)
 
+CentOS Linux 7 (Core)
+
 ## License
 
 SpatialPCA is licensed under the GNU General Public License v3.0.
