@@ -243,7 +243,7 @@ CreateSpatialPCAObject <- function(counts, location, covariate=NULL,project = "S
 					}
 
 				 	## store count matrix as a sparse matrix
-					if(class(object@counts) != "dgCMatrix" ){
+					if(class(object@counts)[1] != "dgCMatrix" ){
 						object@counts <- as(object@counts, "dgCMatrix")
 					}# end fi
 
