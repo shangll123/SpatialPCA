@@ -88,7 +88,7 @@ walktrap_clustering = function(clusternum, latent_dat,knearest=100){
 
   PCvalues = latent_dat
   g <- bluster::makeSNNGraph(as.matrix(t(PCvalues)),k = knearest)
-  clusters <- igraph::cluster_fast_greedy(g)$membership
+  #clusters <- igraph::cluster_fast_greedy(g)$membership
   g_walk <- igraph::cluster_walktrap(g)
   cluster_label_new = as.character(igraph::cut_at(g_walk, no=clusternum))
 
