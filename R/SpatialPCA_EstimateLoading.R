@@ -49,7 +49,7 @@ SpatialPCA_EstimateLoading = function(object, maxiter=300,initial_tau=1,fast=FAL
       object@params$H = matrix(0, object@params$n,object@params$q)
       object@params$H[,1]=1
       object@params$H[,2:object@params$q] = object@covariate
-      HH_inv=solve(t(object@params$H)%*%object@params$H)
+      HH_inv=solve(t(object@params$H)%*%object@params$H,tol = 1e-40)
       HH=object@params$H%*%HH_inv%*%t(object@params$H)
       object@params$M=diag(object@params$n)-HH
       #Y=expr
