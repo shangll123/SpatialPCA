@@ -26,7 +26,7 @@
 #'
 SpatialPCA_EstimateLoading = function(object, maxiter=300,initial_tau=1,fast=FALSE,eigenvecnum=NULL,SpatialPCnum=20){
 
-      # suppressMessages(require(RSpectra))
+      suppressMessages(require(RSpectra))
       set.seed(1234)
       param_ini=log(initial_tau)
       object@SpatialPCnum = SpatialPCnum
