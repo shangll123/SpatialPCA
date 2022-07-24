@@ -33,15 +33,6 @@ get_PCA = function(expr,PCnum){
 #' @param PCnum Number of PCs.
 #' @return A d by n matrix of low dimensional components from NMF. d is number of low dimensional components, which is same as number of Spatial PCs in SpatialPCA. n is sample size.
 #' @export
-#get_NMF = function(count, PCnum){
-  #suppressMessages(require(scater))
-  #suppressMessages(require(NMF))
-#  expr = log(count+1) # non negative
-#  res <- scater::calculateNMF(expr, ncomponents = PCnum)
-#  Z_NMF = t(res)
-#  return(Z_NMF)
-#}
-
 get_NMF = function(count, PCnum){
   suppressMessages(require(scater))
   suppressMessages(require(NMF))
@@ -55,6 +46,17 @@ get_NMF = function(count, PCnum){
   Z_NMF = t(res)
   return(Z_NMF)
 }
+
+#get_NMF = function(count, PCnum){
+  #suppressMessages(require(scater))
+  #suppressMessages(require(NMF))
+#  expr = log(count+1) # non negative
+#  res <- scater::calculateNMF(expr, ncomponents = PCnum)
+#  Z_NMF = t(res)
+#  return(Z_NMF)
+#}
+
+
 
 
 
