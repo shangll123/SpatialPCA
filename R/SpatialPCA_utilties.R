@@ -39,7 +39,7 @@ get_NMF = function(count, PCnum){
   suppressMessages(require(SingleCellExperiment))
   suppressMessages(require(RcppML))
   #expr = log(count+1) # non negative
-  sce <- SingleCellExperiment(list(counts=counts))
+  sce <- SingleCellExperiment(list(counts=count))
   sce <- logNormCounts(sce)
   #sce <- runNMF(sce,ncomponents = PCnum)
   res <- scater::calculateNMF(sce, ncomponents = PCnum)
