@@ -12,7 +12,7 @@
 #' Calculating kernel matrix from spatial locations.
 #'
 #' @param object SpatialPCA object.
-#' @param kerneltype The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel.
+#' @param kerneltype The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel, and "delaunday" for gaussian kernel built with non-linear Delaunay triangulation based distance.
 #' @param bandwidthtype The type of bandwidth to be used in Gaussian kernel, "SJ" for Sheather & Jones (1991) method (usually used in small size datasets), "Silverman" for Silverman's ‘rule of thumb’ method (1986)(usually used in large size datasets).
 #' @param bandwidth.set.by.user User could select their own bandwidth (a numeric value) if the recommended bandwidth doesn't work in their dataset.
 #' @param sparseKernel Select "TURE" if the user wants to use a sparse kernel matrix or "FALSE" if not. It is recommended to choose sparseKernel="TRUE" when sample size is large.
@@ -115,7 +115,7 @@ bandwidth_select=function (expr, method)
 
 #' @title Build kernel matrix.
 #' @description This function calculates kernel matrix from spatial locations.
-#' @param kerneltype The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel.
+#' @param kerneltype The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel, and "delaunday" for gaussian kernel built with non-linear Delaunay triangulation based distance.
 #' @param location A n by d matrix of cell/spot location coordinates.
 #' @param bandwidth A numeric value of bandwidth.
 #' @return The kernel matrix for spatial relationship between locations.
@@ -131,6 +131,11 @@ kernel_build = function (kerneltype = "gaussian", location, bandwidth)
     else if (kerneltype == "quadratic") {
     	ED2=1*as.matrix(dist(location)^2)
         K = 1 - ED2/(ED2 + as.numeric(bandwidth))
+    }else if (kerneltype == "delaunday") {
+    	require(spatstat.geom)
+    	tmp <- ppp(location[,1], location[,2],window=owin(c(-3,3),c(-3,3)))
+		Delaunay_dist=delaunayDistance(tmp)
+		K = exp(-Delaunay_dist^2/30) 
     }
     return(K)
 }
@@ -175,8 +180,7 @@ kernel_build_sparse = function(kerneltype,location, bandwidth,tol, ncores)
   		tib = tibble(results)  %>%  unnest_wider(results)
 		K_sparse = Matrix::sparseMatrix(i =unlist(tib[[1]]), j= unlist(tib[[2]]), x= unlist(tib[[3]]),  dims = c(dim(location)[1],dim(location)[1] ))
         #K = exp(-1*as.matrix(dist(location)^2)/bandwidth)
-    }
-    else if (kerneltype == "cauchy") {
+    } else if (kerneltype == "cauchy") {
     	fx_cauchy <- function(i){
 			line_i = rep(0,dim(location)[1])
 			line_i[i] = 1
@@ -189,8 +193,7 @@ kernel_build_sparse = function(kerneltype,location, bandwidth,tol, ncores)
   		tib = tibble(results)  %>%  unnest_wider(results)
 		K_sparse = Matrix::sparseMatrix(i =unlist(tib[[1]]), j= unlist(tib[[2]]), x= unlist(tib[[3]]),  dims = c(dim(location)[1],dim(location)[1] ))
         # K = 1/(1 + 1*as.matrix(dist(location)^2)/as.numeric(bandwidth))
-    }
-    else if (kerneltype == "quadratic") {
+    }else if (kerneltype == "quadratic"){
 
     	fx_quadratic <- function(i){
 			line_i = rep(0,dim(location)[1])
@@ -207,7 +210,16 @@ kernel_build_sparse = function(kerneltype,location, bandwidth,tol, ncores)
        # ED2=1*as.matrix(dist(location)^2)
        # K = 1 - ED2/(ED2 + as.numeric(bandwidth))
 
+    }else if (kerneltype == "delaunday"){
+
+    	require(spatstat.geom)
+    	tmp <- ppp(location[,1], location[,2],window=owin(c(-3,3),c(-3,3))) # scaled distance often ranges from -3 to 3
+		Delaunay_dist=delaunayDistance(tmp)
+		K = exp(-Delaunay_dist^2/30) 
+		K[K<tol]=0
+		K_sparse = as(K, "sparseMatrix")
     }
+
     return(K_sparse)
 
 }

@@ -47,16 +47,6 @@ get_NMF = function(count, PCnum){
   return(Z_NMF)
 }
 
-#get_NMF = function(count, PCnum){
-  #suppressMessages(require(scater))
-  #suppressMessages(require(NMF))
-#  expr = log(count+1) # non negative
-#  res <- scater::calculateNMF(expr, ncomponents = PCnum)
-#  Z_NMF = t(res)
-#  return(Z_NMF)
-#}
-
-
 
 
 
