@@ -2,6 +2,7 @@
 
 export(CreateSpatialPCAObject)
 export(SpatialPCA_EstimateLoading)
+export(SpatialPCA_Multiple_Sample)
 export(SpatialPCA_SpatialPCs)
 export(SpatialPCA_buildKernel)
 export(SpatialPCA_expr_pred)
