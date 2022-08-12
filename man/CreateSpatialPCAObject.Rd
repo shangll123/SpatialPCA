@@ -48,8 +48,3 @@ Returns SpatialPCA object, with filtered and normalized gene expression matrix a
 \description{
 Create the SpatialPCA object with filtering and normalization step.
 }
-\examples{
-
-
-
-}

@@ -4,14 +4,16 @@
 \alias{SpatialPCA_highresolution}
 \title{High-resolution spatial map construction.}
 \usage{
-SpatialPCA_highresolution(object, newlocation = NULL)
+SpatialPCA_highresolution(object, platform = "ST", newlocation = NULL)
 }
 \arguments{
 \item{object}{SpatialPCA object.}
 
+\item{platform}{"ST": the 10X ST platform, impute 9 subspots in a square shape for each spot;
+"Visium": the 10X Visium platform, impute 6 subspots in a hexagonal shape for each spot;}
+
 \item{newlocation}{A n* by d location matrix, n* is number of new locations, d is dimension of locations.
-Users can optionally provide new locations at the original location scale.
-If newlocation is not provided, aka newlocation=NULL, we would jitter each existing location to surrounding 4 locations as new locations.}
+Users can optionally provide new locations at the original location scale.}
 }
 \value{
 Returns SpatialPCA object with estimated Spatial PCs on new locations.

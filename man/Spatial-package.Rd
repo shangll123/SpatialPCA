@@ -7,6 +7,3 @@
 \description{
 A DESCRIPTION OF THE PACKAGE
 }
-\references{
-
-}

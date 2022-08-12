@@ -17,7 +17,7 @@ SpatialPCA_buildKernel(
 \arguments{
 \item{object}{SpatialPCA object.}
 
-\item{kerneltype}{The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel.}
+\item{kerneltype}{The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel, and "delaunday" for gaussian kernel built with non-linear Delaunay triangulation based distance.}
 
 \item{bandwidthtype}{The type of bandwidth to be used in Gaussian kernel, "SJ" for Sheather & Jones (1991) method (usually used in small size datasets), "Silverman" for Silverman's ‘rule of thumb’ method (1986)(usually used in large size datasets).}
 

@@ -7,7 +7,7 @@
 kernel_build(kerneltype = "gaussian", location, bandwidth)
 }
 \arguments{
-\item{kerneltype}{The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel.}
+\item{kerneltype}{The type of kernel to be used, either "gaussian", or "cauchy" for cauchy kernel, or "quadratic" for rational quadratic kernel, and "delaunday" for gaussian kernel built with non-linear Delaunay triangulation based distance.}
 
 \item{location}{A n by d matrix of cell/spot location coordinates.}
 
