@@ -21,7 +21,7 @@ The tutorial includes main example codes for multiple spatial transcriptomics da
 
 Other analysis codes for this project can be found [here](http://lulushang.org/docs/Projects/SpatialPCA).
 
-## Operating systems (version 1.2.0 SpatialPCA) tested on:
+## Operating systems (version 1.3.0 SpatialPCA) tested on:
 macOS Catalina 10.15.7
 
 Ubuntu 18.04.5 LTS (Bionic Beaver)
