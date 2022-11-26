@@ -79,7 +79,7 @@ SpatialPCA_Multiple_Sample = function(count_list,location_list,gene.type="spatia
     MultipleSample_merge = spatialpca_list[[1]] # initialize using the first data, will replace with integrated data later
     MultipleSample_merge@normalized_expr = t(scale(t(integrated_data[match(common_genes, rownames(integrated_data)),])))
     MultipleSample_merge@kernelmat = Matrix::bdiag(Kernal_mat)
-    MultipleSample_merge@kernelmat = as(MultipleSample_merge@kernelmat, "sparseMatrix")
+    # MultipleSample_merge@kernelmat = as(MultipleSample_merge@kernelmat, "sparseMatrix")
     MultipleSample_merge@sparseKernel = TRUE
     MultipleSample_merge@params$expr = MultipleSample_merge@normalized_expr
     MultipleSample_merge@location = do.call("rbind",lapply(spatialpca_list, function(x){ x@location}))
