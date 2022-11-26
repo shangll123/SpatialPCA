@@ -89,7 +89,20 @@ SpatialPCA_Multiple_Sample = function(count_list,location_list,gene.type="spatia
     MultipleSample_merge = SpatialPCA_EstimateLoading(MultipleSample_merge,fast=TRUE,SpatialPCnum=20)
     MultipleSample_merge = SpatialPCA_SpatialPCs(MultipleSample_merge, fast=TRUE)
     colnames(MultipleSample_merge@SpatialPCs) = rownames(MultipleSample_merge@location)
-    return(MultipleSample_merge)
+    
+    id_list = list()
+    SpatialPC_list = list()
+    Location_spatialpc_list = list()
+    for(sample in 1:length(count_list)){
+	    id_list[[sample]] = grep(paste0("Sample",sample), colnames(MultipleSample_merge@SpatialPCs))
+	    SpatialPC_list[[sample]] = MultipleSample_merge@SpatialPCs[,id_list[[sample]]]
+        Location_spatialpc_list[[sample]] = spatialpca_list[[sample]]@location
+        
+    }
+
+    names(SpatialPC_list) = paste0("Sample",1:length(SpatialPC_list))
+    
+    return(list("MultipleSample_SpatialPCA_object"=MultipleSample_merge, "SpatialPC_list" = SpatialPC_list, "Location_spatialpc_list"=Location_spatialpc))
 }
 
 
