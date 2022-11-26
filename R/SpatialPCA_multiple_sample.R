@@ -88,7 +88,7 @@ SpatialPCA_Multiple_Sample = function(count_list,location_list,gene.type="spatia
     # perform SpatialPCA on integrated expression and integrated block diagonal kernel
     MultipleSample_merge = SpatialPCA_EstimateLoading(MultipleSample_merge,fast=TRUE,SpatialPCnum=20)
     MultipleSample_merge = SpatialPCA_SpatialPCs(MultipleSample_merge, fast=TRUE)
-
+    colnames(MultipleSample_merge@SpatialPCs) = rownames(MultipleSample_merge@location)
     return(MultipleSample_merge)
 }
 
