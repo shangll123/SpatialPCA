@@ -96,13 +96,14 @@ SpatialPCA_Multiple_Sample = function(count_list,location_list,gene.type="spatia
     for(sample in 1:length(count_list)){
 	    id_list[[sample]] = grep(paste0("Sample",sample), colnames(MultipleSample_merge@SpatialPCs))
 	    SpatialPC_list[[sample]] = MultipleSample_merge@SpatialPCs[,id_list[[sample]]]
-        Location_spatialpc_list[[sample]] = spatialpca_list[[sample]]@location
-        
+            Location_spatialpc_list[[sample]] = spatialpca_list[[sample]]@location
     }
 
     names(SpatialPC_list) = paste0("Sample",1:length(SpatialPC_list))
-    
-    return(list("MultipleSample_SpatialPCA_object"=MultipleSample_merge, "SpatialPC_list" = SpatialPC_list, "Location_spatialpc_list"=Location_spatialpc))
+    names(Location_spatialpc_list) = paste0("Sample",1:length(Location_spatialpc_list))
+    return(list("MultipleSample_SpatialPCA_object"=MultipleSample_merge, 
+		"SpatialPC_list" = SpatialPC_list, 
+		"Location_spatialpc_list"=Location_spatialpc_list))
 }
 
 
