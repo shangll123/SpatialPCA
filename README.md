@@ -33,6 +33,6 @@ CentOS Linux 7 (Core)
 SpatialPCA is licensed under the GNU General Public License v3.0.
 
 ## Citation
-Lulu Shang, and Xiang Zhou (2022). Spatially aware dimension reduction for spatial transcriptomics. [bioRxiv](https://www.biorxiv.org/content/10.1101/2022.01.19.476966v1).
+Lulu Shang, and Xiang Zhou (2022). Spatially aware dimension reduction for spatial transcriptomics. [Nature Communications](https://www.nature.com/articles/s41467-022-34879-1).
 
-doi: https://doi.org/10.1101/2022.01.19.476966
+doi: https://www.nature.com/articles/s41467-022-34879-1
