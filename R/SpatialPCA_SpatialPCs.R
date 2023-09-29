@@ -71,7 +71,7 @@ if(fast==FALSE){
     middle_inv = solve(1/tau * diag(1/delta) + UtMU, tol = 1e-40)
     
     object@SpatialPCs = tau*WtYMK - tau*WtYMU %*% middle_inv %*% UtMK
-
+    object@SpatialPCs = as.matrix(object@SpatialPCs)
     rm(W_hat_t)
     rm(WtYM)
     rm(WtYMK)
