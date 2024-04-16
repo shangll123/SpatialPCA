@@ -20,7 +20,7 @@ Please see the [SpatialPCA tutorial website.](http://lulushang.org/SpatialPCA_Tu
 The tutorial includes main example codes for multiple spatial transcriptomics datasets (e.g. DLPFC, Slide-Seq cerebellum, Slide-Seq V2 hippocampus, Human breast tumor, and Vizgen MERFISH.)
 
 Other analysis codes for this project can be found [here](https://github.com/shangll123/SpatialPCA_analysis_codes).
-
+Example data can be found here: https://drive.google.com/drive/folders/1Ibz5uNsFKHJ4roPpaec5nPL_EBF3-wxY?usp=share_link.
 ## Operating systems (version 1.3.0 SpatialPCA) tested on:
 macOS Catalina 10.15.7
 
