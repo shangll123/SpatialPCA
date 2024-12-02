@@ -128,7 +128,7 @@ CreateSpatialPCAObject <- function(counts, location, covariate=NULL,project = "S
 
 	}# end fi
 
- 
+ rownames(counts) <- gsub("_", "-", rownames(counts))
 
   Seu <- CreateSeuratObject(counts = counts, project = project, min.cells = min.loctions, min.features = min.features)
 	
