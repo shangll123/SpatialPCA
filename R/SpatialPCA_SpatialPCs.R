@@ -53,7 +53,7 @@ if(fast==FALSE){
         U=object@params$U
         delta=object@params$delta
         ind=length(delta)
-        print(paste0("Low rank approximation!"))
+        #print(paste0("Low rank approximation!"))
         print(paste0("Small sample, using top ",ind," eigenvectors and eigenvalues in the Kernel matrix!"))
     }
 }
