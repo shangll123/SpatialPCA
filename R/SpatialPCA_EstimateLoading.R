@@ -37,25 +37,25 @@ SpatialPCA_EstimateLoading = function(object, maxiter=300,initial_tau=1,fast=FAL
 
   if(is.null(object@covariate)){
       object@params$H = matrix(1, dim(object@params$X)[1],1)
-      HH_inv=solve(t(object@params$H)%*%object@params$H,tol = 1e-40)
-      HH = object@params$H%*%HH_inv%*%t(object@params$H)
-      object@params$M=diag(object@params$n)-HH
-      # Y=expr
-      object@params$tr_YMY=sum(diag(object@params$expr%*%object@params$M%*%t(object@params$expr)))
-      object@params$YM = object@params$expr%*%object@params$M
       object@params$q=1
   }else{
       object@params$q = dim(object@covariate)[2]+1
       object@params$H = matrix(0, object@params$n,object@params$q)
       object@params$H[,1]=1
       object@params$H[,2:object@params$q] = object@covariate
-      HH_inv=solve(t(object@params$H)%*%object@params$H,tol = 1e-40)
-      HH=object@params$H%*%HH_inv%*%t(object@params$H)
-      object@params$M=diag(object@params$n)-HH
-      #Y=expr
-      object@params$tr_YMY=sum(diag(object@params$expr%*%object@params$M%*%t(object@params$expr)))
-      object@params$YM = object@params$expr%*%object@params$M
   }
+
+  # M = I - H (H'H)^{-1} H' is an n x n symmetric projection matrix. Building it
+  # densely needs O(n^2) memory (about 200 GB for n = 160,000), so it is never
+  # formed. Products with M are computed from H directly:
+  #   YM = Y - (Y H) (H'H)^{-1} H'
+  #   tr(Y M Y') = ||YM||_F^2, because M = M'M
+  # Y=expr
+  HH_inv=solve(t(object@params$H)%*%object@params$H,tol = 1e-40)
+  object@params$YM = object@params$expr - (object@params$expr %*% object@params$H) %*% HH_inv %*% t(object@params$H)
+  object@params$tr_YMY = sum(object@params$YM^2)
+  object@params$M = NULL
+  rm(HH_inv)
 
 
   if(fast==FALSE){
@@ -109,8 +109,8 @@ SpatialPCA_EstimateLoading = function(object, maxiter=300,initial_tau=1,fast=FAL
     }
 
 
-    object@params$MYt = object@params$M %*% t(object@params$expr)
-    object@params$YMMYt = object@params$YM %*% object@params$MYt
+    # M is symmetric and idempotent, so (YM)(MY') = (YM)(YM)'
+    object@params$YMMYt = tcrossprod(object@params$YM)
     object@params$YMU = object@params$YM %*% object@params$U
     object@params$Xt = t(object@params$H)
     object@params$XtU = object@params$Xt %*% object@params$U
@@ -129,19 +129,20 @@ SpatialPCA_EstimateLoading = function(object, maxiter=300,initial_tau=1,fast=FAL
     n = dim(object@params$expr)[2]
     q=object@params$q
     tauD_UtU_inv = solve(object@tau*diag(object@params$delta) + object@params$UtU, tol = 1e-40)
-    YMU_tauD_UtU_inv_Ut = object@params$YMU %*% tauD_UtU_inv %*% object@params$Ut
-    YMU_tauD_UtU_inv_UtX = YMU_tauD_UtU_inv_Ut %*% object@params$H
+    # Keep products k x r instead of k x n: U'MY' = (YMU)'
+    YMU_tauD_UtU_inv = object@params$YMU %*% tauD_UtU_inv
+    YMU_tauD_UtU_inv_UtX = YMU_tauD_UtU_inv %*% object@params$UtX
     XtU_inv_UtX = object@params$XtU %*% tauD_UtU_inv %*% object@params$UtX
     left = object@params$YMX - YMU_tauD_UtU_inv_UtX
     right = t(left)
     middle = solve(-XtU_inv_UtX, tol = 1e-40)
-    G_each = object@params$YMMYt - YMU_tauD_UtU_inv_Ut %*% object@params$MYt - left %*% middle %*% right
+    G_each = object@params$YMMYt - YMU_tauD_UtU_inv %*% t(object@params$YMU) - left %*% middle %*% right
     object@W = eigs_sym(G_each, k=SpatialPCnum, which = "LM")$vectors
     object@sigma2_0 = as.numeric((object@params$tr_YMY+F_funct_sameG(object@W,G_each))/(k*(n-q)))
 
     rm(eigen_res)
     rm(tauD_UtU_inv)
-    rm(YMU_tauD_UtU_inv_Ut)
+    rm(YMU_tauD_UtU_inv)
     rm(YMU_tauD_UtU_inv_UtX)
     rm(XtU_inv_UtX)
     rm(left)
@@ -164,13 +165,14 @@ SpatialPCA_estimate_parameter = function(param_ini, params){
     q=params$q
     PCnum=params$SpatialPCnum
     tauD_UtU_inv = solve(tau*diag(params$delta) + params$UtU, tol = 1e-40)
-    YMU_tauD_UtU_inv_Ut = params$YMU %*% tauD_UtU_inv %*% params$Ut
-    YMU_tauD_UtU_inv_UtX = YMU_tauD_UtU_inv_Ut %*% params$H
+    # Keep products k x r instead of k x n: U'MY' = (YMU)'
+    YMU_tauD_UtU_inv = params$YMU %*% tauD_UtU_inv
+    YMU_tauD_UtU_inv_UtX = YMU_tauD_UtU_inv %*% params$UtX
     XtU_inv_UtX = params$XtU %*% tauD_UtU_inv %*% params$UtX
     left = params$YMX - YMU_tauD_UtU_inv_UtX
     right = t(left)
     middle = solve(-XtU_inv_UtX, tol = 1e-40)
-    G_each = params$YMMYt - YMU_tauD_UtU_inv_Ut %*% params$MYt - left %*% middle %*% right
+    G_each = params$YMMYt - YMU_tauD_UtU_inv %*% t(params$YMU) - left %*% middle %*% right
     log_det_tauK_I = determinant(1/tau*diag(1/params$delta)+ params$UtU, logarithm=TRUE)$modulus[1] + determinant(tau*diag(params$delta), logarithm=TRUE)$modulus[1]
     Xt_invmiddle_X = params$XtX - params$XtU %*% solve(params$UtU + 1/tau *diag( 1/params$delta) , tol = 1e-40) %*% params$UtX
     log_det_Xt_inv_X = determinant(Xt_invmiddle_X, logarithm=TRUE)$modulus[1]
@@ -178,7 +180,7 @@ SpatialPCA_estimate_parameter = function(param_ini, params){
     sum_det=sum_det+(0.5*log_det_tauK_I+0.5*log_det_Xt_inv_X  )*PCnum
 
     rm(tauD_UtU_inv)
-    rm(YMU_tauD_UtU_inv_Ut)
+    rm(YMU_tauD_UtU_inv)
     rm(YMU_tauD_UtU_inv_UtX)
     rm(XtU_inv_UtX)
     rm(left)
