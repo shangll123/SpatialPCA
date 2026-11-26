@@ -65,7 +65,9 @@ if(fast==FALSE){
     WtYMK = WtYM %*% object@kernelmat
     WtYMU = WtYM %*% object@params$U
     Ut=t(object@params$U)
-    UtM = Ut %*% object@params$M
+    # U'M = U' - (U'H)(H'H)^{-1}H', without forming the n x n matrix M
+    H = object@params$H
+    UtM = Ut - ((Ut %*% H) %*% solve(t(H) %*% H, tol = 1e-40)) %*% t(H)
     UtMK = UtM %*% object@kernelmat
     UtMU = UtM %*% object@params$U
     middle_inv = solve(1/tau * diag(1/delta) + UtMU, tol = 1e-40)
