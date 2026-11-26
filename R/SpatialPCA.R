@@ -233,13 +233,16 @@ CreateSpatialPCAObject <- function(counts, location, covariate=NULL,project = "S
 
 }
 
+					#  covariate rows follow the original location order (checked above),
+					#  so match against the location names before they are reordered
+					location_names_input = rownames(object@location)
+
 					#  location for normalized expression matrix
 					object@location = object@location[match(colnames(object@normalized_expr), rownames(object@location)),]
 
 					#  covariates, i.e., confounding or batch effects
 					if(!is.null(covariate)){
-						object@covariate = object@covariate[match(colnames(object@normalized_expr), rownames(object@location)),1:q]
-						object@covariate = as.matrix(object@covariate,dim(object@normalized_expr)[2],q )
+						object@covariate = object@covariate[match(colnames(object@normalized_expr), location_names_input),1:q,drop=FALSE]
 					}
 
 				 	## store count matrix as a sparse matrix
