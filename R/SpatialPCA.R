@@ -170,7 +170,10 @@ CreateSpatialPCAObject <- function(counts, location, covariate=NULL,project = "S
 
 								if( gene.number < hvg_gene_num ){
 
-								object@normalized_expr = Seu@assays$SCT@scale.data[1:gene.number,]
+								# scale.data rows keep the input gene order, so rank by residual
+								# variance (the order of VariableFeatures) to take the top genes
+								top_hvg = head(intersect(VariableFeatures(Seu, assay = "SCT"), rownames(Seu@assays$SCT@scale.data)), gene.number)
+								object@normalized_expr = Seu@assays$SCT@scale.data[top_hvg,]
 								
 								cat(paste("## Using top ",gene.number," highly variable genes. \n"))
 
